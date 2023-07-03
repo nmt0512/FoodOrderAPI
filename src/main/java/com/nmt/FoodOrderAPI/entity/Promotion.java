@@ -35,6 +35,6 @@ public class Promotion {
     @ManyToMany(mappedBy = "promotionList", fetch = FetchType.LAZY)
     private List<User> userList;
 
-    @ManyToMany(mappedBy = "promotionList", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "promotion")
     private List<Bill> billList;
 }

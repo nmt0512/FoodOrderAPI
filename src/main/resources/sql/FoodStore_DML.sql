@@ -19,7 +19,11 @@ INSERT INTO DBUser(Username, Password, Fullname, Role, Email, Gender) VALUES('ad
 
 SELECT * FROM Product
 
+UPDATE Product SET Quantity = 3000 WHERE Id = 3
+
 SELECT * FROM Image
+
+UPDATE Image SET Link = 'https://anchay.vn/wp-content/uploads/2021/11/3.jpg' WHERE ProductId = 7
 
 INSERT INTO Image(Link, ProductId) VALUES('https://bonjourcoffee.vn/blog/wp-content/uploads/2020/01/capuchino.jpg', 6)
 
@@ -32,6 +36,10 @@ DELETE FROM Bill WHERE Id = 10
 DELETE FROM BillItem WHERE Id = 11
 
 UPDATE Bill SET Status = 1
+
+DELETE FROM BillItem WHERE BillId IN (SELECT Id FROM Bill WHERE Status IN (1,4))
+
+DELETE FROM Bill WHERE Status IN (1,4)
 
 SELECT * FROM Promotion
 
@@ -51,19 +59,14 @@ ALTER COLUMN Gender bit null
 
 UPDATE Product SET Quantity = 600
 
-
-
 SELECT * FROM Product
 
 INSERT INTO Product(Code, Name, Quantity, UnitPrice, CategoryId) 
 VALUES('matcha-latte', N'Matcha latte', 800, 50000, 2)
 
-INSERT INTO Image(Link, ProductId) VALUES('https://images.foody.vn/res/g100007/1000064539/s400x400/6f07a1e0-d91b-4e6a-a79e-11aecaf9-d4eb43b2-230408160815.jpeg', 8)
+INSERT INTO Image(Link, ProductId) VALUES('https://beptruong.edu.vn/wp-content/uploads/2016/02/sinh-to-xoai-sua-tuoi.jpg', 17)
 
 SELECT YEAR(Time) AS Time, SUM(TotalPrice) AS TotalRevenue FROM Bill WHERE Status = 2 GROUP BY YEAR(Time)
-
-
-SELECT * FROM Cart
 
 DELETE FROM BillItem
 DELETE FROM Bill
@@ -94,3 +97,11 @@ SELECT * FROM DBUserPromotion
 
 SELECT * FROM Bill ORDER BY Time ASC
 
+UPDATE DBUser SET Phone = '0000000000' WHERE Username = 'thieunm'
+
+UPDATE DBUser SET Username = 'thieunm' WHERE Username = 'admin123'
+
+UPDATE Bill SET StaffName = N'Lê Đức Thọ'
+
+ALTER TABLE Bill 
+ALTER COLUMN StaffName nvarchar(255) NULL

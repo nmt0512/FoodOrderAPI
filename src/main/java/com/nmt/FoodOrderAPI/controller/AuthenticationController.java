@@ -20,7 +20,6 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final UserDetailsService userDetailsService;
 
-
     @PostMapping("/login")
     public ResponseEntity<ResponseData<LoginResponse>> loginAndCreateJsonWebToken(@RequestBody LoginRequest loginRequest) {
         String token = authenticationService.authenticateAndGenerateToken(loginRequest);
@@ -33,4 +32,5 @@ public class AuthenticationController {
             return ResponseUtils.success(new LoginResponse(token, true));
         return ResponseUtils.success(new LoginResponse(token, false));
     }
+
 }

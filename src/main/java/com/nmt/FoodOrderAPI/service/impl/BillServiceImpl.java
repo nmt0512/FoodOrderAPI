@@ -25,6 +25,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -53,7 +54,8 @@ public class BillServiceImpl implements BillService {
                 .time(new Timestamp(System.currentTimeMillis()))
                 .status(BillStatusCode.PENDING.getCode())
                 .totalPrice(totalPrice)
-                .user(userDetailsService.getCurrentUser())
+                .user(null)
+                .staffName(userDetailsService.getCurrentUser().getFullname())
                 .build();
         bill = billRepository.save(bill);
 
@@ -72,11 +74,11 @@ public class BillServiceImpl implements BillService {
 
         List<Promotion> applyingPromotionList = promotionRepository.findByApplyingPriceLessThanEqual(totalPrice);
         if (applyingPromotionList != null)
-            billResponse.setPromotionResponseList(applyingPromotionList.stream()
+            billResponse.setGivenPromotionResponseList(applyingPromotionList.stream()
                     .map(promotionMappper::toPromotionResponse)
                     .collect(Collectors.toList()));
         else
-            billResponse.setPromotionResponseList(new ArrayList<>());
+            billResponse.setGivenPromotionResponseList(new ArrayList<>());
         return billResponse;
     }
 
@@ -125,10 +127,11 @@ public class BillServiceImpl implements BillService {
         Bill bill = billRepository.findById(billRequest.getId()).get();
         bill.setStatus(billRequest.getStatus());
         bill.setTotalPrice(billRequest.getNewTotalPrice());
+        if (bill.getUser() != null)
+            bill.setStaffName(userDetailsService.getCurrentUser().getFullname());
         if (billRequest.getPromotionId() != null) {
-            List<Promotion> promotionList = new ArrayList<>();
-            promotionList.add(promotionRepository.findById(billRequest.getPromotionId()).get());
-            bill.setPromotionList(promotionList);
+            Promotion promotion = promotionRepository.findById(billRequest.getPromotionId()).get();
+            bill.setPromotion(promotion);
         }
         bill = billRepository.save(bill);
 
@@ -144,7 +147,8 @@ public class BillServiceImpl implements BillService {
 
     @Override
     public BillResponse getBillDetail(Integer billId) {
-        Bill bill = billRepository.findById(billId).get();
+        Bill bill = billRepository.findById(billId).orElseThrow(NoSuchElementException::new);
+
         BillResponse billResponse = toBillResponse(bill);
         billResponse.setBillItemResponseList(
                 bill.getBillItemList().stream().map(billItem -> {
@@ -162,16 +166,13 @@ public class BillServiceImpl implements BillService {
                 }).collect(Collectors.toList())
         );
 
-        if (bill.getPromotionList() != null)
-            billResponse.setPromotionResponseList(
-                    bill.getPromotionList()
-                            .stream()
-                            .map(promotionMappper::toPromotionResponse)
-                            .collect(Collectors.toList())
-            );
+        if (bill.getPromotion() != null)
+            billResponse.setUsedPromotionResponse(promotionMappper.toPromotionResponse(bill.getPromotion()));
 
-        UserResponse userResponse = userMapper.toUserResponse(bill.getUser());
-        billResponse.setUserResponse(userResponse);
+        if (bill.getUser() != null) {
+            UserResponse userResponse = userMapper.toUserResponse(bill.getUser());
+            billResponse.setUserResponse(userResponse);
+        }
         return billResponse;
     }
 

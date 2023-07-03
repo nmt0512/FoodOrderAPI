@@ -42,10 +42,10 @@ public class ProductServiceImpl implements ProductService {
                 .collect(Collectors.toList());
     }
 
-    private String convertNameToCode(String name) {
-        String temp = Normalizer.normalize(name, Normalizer.Form.NFD);
-        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
-        return pattern.matcher(temp).replaceAll("").toLowerCase()
-                .replaceAll(" ", "-").replaceAll("đ", "d");
-    }
+//    private String convertNameToCode(String name) {
+//        String temp = Normalizer.normalize(name, Normalizer.Form.NFD);
+//        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+//        return pattern.matcher(temp).replaceAll("").toLowerCase()
+//                .replaceAll(" ", "-").replaceAll("đ", "d");
+//    }
 }

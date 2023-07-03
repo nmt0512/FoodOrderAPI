@@ -1,6 +1,7 @@
 package com.nmt.FoodOrderAPI.entity;
 
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
 
 import javax.persistence.*;
 import javax.validation.constraints.Min;
@@ -29,6 +30,10 @@ public class Bill {
     @Column(name = "Status", nullable = false)
     private Integer status;
 
+    @Nationalized
+    @Column(name = "StaffName")
+    private String staffName;
+
     @OneToMany(mappedBy = "bill")
     private List<BillItem> billItemList;
 
@@ -36,11 +41,7 @@ public class Bill {
     @JoinColumn(name = "UserId", nullable = false)
     private User user;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "BillPromotion",
-            joinColumns = @JoinColumn(name = "BillId"),
-            inverseJoinColumns = @JoinColumn(name = "PromotionId")
-    )
-    private List<Promotion> promotionList;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PromotionId")
+    private Promotion promotion;
 }

@@ -32,11 +32,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse addUser(UserRequest userRequest) {
         User user = userMapper.toUser(userRequest);
-        user.setRole(false);
-        user.setEmail(userRequest.getUsername());
+        user.setRole(true);
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-        user = userRepository.save(user);
-        return userMapper.toUserResponse(user);
+        return userMapper.toUserResponse(userRepository.save(user));
     }
 
     @Override

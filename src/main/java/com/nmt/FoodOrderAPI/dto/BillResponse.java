@@ -18,10 +18,11 @@ public class BillResponse {
     private Integer totalPrice;
     private String time;
     private Integer status;
+    private String staffName;
 
     @JsonProperty("givenPromotion")
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<PromotionResponse> promotionResponseList;
+    private List<PromotionResponse> givenPromotionResponseList;
 
     @JsonProperty("billItemList")
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -29,8 +30,9 @@ public class BillResponse {
 
     @JsonProperty("usedPromotion")
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private PromotionResponse promotionResponse;
+    private PromotionResponse usedPromotionResponse;
 
     @JsonProperty("user")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private UserResponse userResponse;
 }

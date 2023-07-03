@@ -16,9 +16,11 @@ public class StatisticRepository {
     private final JdbcTemplate jdbcTemplate;
 
     public List<StatisticResponse> getMonthlyStatisticByYear(int year) {
-        String query = "SELECT FORMAT(Time, 'MM/yyyy') AS Time, SUM(TotalPrice) AS Revenue " +
-                "FROM Bill WHERE Status = 2 AND YEAR(Time) = " + year + " GROUP BY FORMAT(Time, 'MM/yyyy')";
-        return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(StatisticResponse.class));
+        StringBuilder query = new StringBuilder("SELECT FORMAT(Time, 'MM/yyyy') AS Time, SUM(TotalPrice) AS Revenue ")
+                .append("FROM Bill WHERE Status = 2 AND YEAR(Time) = ")
+                .append(year)
+                .append(" GROUP BY FORMAT(Time, 'MM/yyyy')");
+        return jdbcTemplate.query(query.toString(), new BeanPropertyRowMapper<>(StatisticResponse.class));
     }
 
     public List<Integer> getAllStatisticYear() {
@@ -27,18 +29,16 @@ public class StatisticRepository {
     }
 
     public StatisticResponse getRevenueByDay(String day) {
-        String query = "SELECT FORMAT(Time, 'dd/MM/yyyy') AS Time, SUM(TotalPrice) AS Revenue " +
-                "FROM Bill WHERE Status = 2 AND FORMAT(Time, 'dd/MM/yyyy') = '" + day +
-                "' GROUP BY FORMAT(Time, 'dd/MM/yyyy')";
-        try
-        {
-            return jdbcTemplate.queryForObject(query, (rs, rowNum) -> StatisticResponse.builder()
+        StringBuilder query = new StringBuilder("SELECT FORMAT(Time, 'dd/MM/yyyy') AS Time, SUM(TotalPrice) AS Revenue ")
+                .append("FROM Bill WHERE Status = 2 AND FORMAT(Time, 'dd/MM/yyyy') = '")
+                .append(day)
+                .append("' GROUP BY FORMAT(Time, 'dd/MM/yyyy')");
+        try {
+            return jdbcTemplate.queryForObject(query.toString(), (rs, rowNum) -> StatisticResponse.builder()
                     .time(rs.getNString("Time"))
                     .revenue(rs.getInt("Revenue"))
                     .build());
-        }
-        catch (EmptyResultDataAccessException e)
-        {
+        } catch (EmptyResultDataAccessException e) {
             return StatisticResponse.builder()
                     .time(day)
                     .revenue(0)
