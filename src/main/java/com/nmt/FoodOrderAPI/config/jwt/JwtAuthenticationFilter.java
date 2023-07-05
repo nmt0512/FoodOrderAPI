@@ -34,14 +34,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (request.getHeader("Authorization") != null) {
             String requestTokenHeader = request.getHeader("Authorization");
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                try
-                {
+                try {
                     jwtToken = requestTokenHeader.substring(7);
                     username = jwtUtil.getUsernameFromToken(jwtToken);
-                }
-                catch (IllegalArgumentException | MalformedJwtException |
-                       ExpiredJwtException | IndexOutOfBoundsException ignored)
-                {
+                } catch (IllegalArgumentException | MalformedJwtException |
+                         ExpiredJwtException | IndexOutOfBoundsException ignored) {
                 }
             }
         }

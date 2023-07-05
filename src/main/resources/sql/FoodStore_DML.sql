@@ -105,3 +105,9 @@ UPDATE Bill SET StaffName = N'Lê Đức Thọ'
 
 ALTER TABLE Bill 
 ALTER COLUMN StaffName nvarchar(255) NULL
+
+SELECT * FROM DBUserPromotion
+
+INSERT INTO DBUserPromotion VALUES(15, 3)
+
+UPDATE Bill SET Status = 3 WHERE Id = 195

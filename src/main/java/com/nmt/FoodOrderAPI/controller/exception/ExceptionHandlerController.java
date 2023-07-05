@@ -9,7 +9,9 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import javax.validation.ConstraintViolationException;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ExceptionHandlerController {
@@ -29,5 +31,24 @@ public class ExceptionHandlerController {
             OldPasswordNotMatchException oldPasswordNotMatchException
     ) {
         return ResponseUtils.error(400, oldPasswordNotMatchException.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ResponseData<Void>> handleConstraintViolationException(
+            ConstraintViolationException constraintViolationException
+    ) {
+        return ResponseUtils.error(
+                400,
+                constraintViolationException
+                        .getConstraintViolations()
+                        .stream()
+                        .map(constraintViolation -> constraintViolation
+                                .getPropertyPath()
+                                .toString() +
+                                " " +
+                                constraintViolation.getMessage()
+                        )
+                        .collect(Collectors.joining()),
+                HttpStatus.BAD_REQUEST);
     }
 }

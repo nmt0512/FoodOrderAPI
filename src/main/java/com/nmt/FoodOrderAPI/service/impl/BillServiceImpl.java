@@ -44,6 +44,7 @@ public class BillServiceImpl implements BillService {
 
 
     @Override
+    @Transactional
     public BillResponse addBill(List<BillItemRequest> billItemRequestList) {
         int totalPrice = 0;
         for (BillItemRequest item : billItemRequestList)
