@@ -14,8 +14,7 @@ public class JdbcTemplateConfig {
     @Autowired
     private Environment environment;
 
-    private DriverManagerDataSource driverManagerDataSource()
-    {
+    private DriverManagerDataSource driverManagerDataSource() {
         DriverManagerDataSource ds = new DriverManagerDataSource();
         ds.setDriverClassName(Objects.requireNonNull(environment.getProperty("spring.datasource.driverClassName")));
         ds.setUrl(environment.getProperty("spring.datasource.url"));
@@ -25,8 +24,7 @@ public class JdbcTemplateConfig {
     }
 
     @Bean
-    public JdbcTemplate jdbcTemplate()
-    {
+    public JdbcTemplate jdbcTemplate() {
         return new JdbcTemplate(driverManagerDataSource());
     }
 }
