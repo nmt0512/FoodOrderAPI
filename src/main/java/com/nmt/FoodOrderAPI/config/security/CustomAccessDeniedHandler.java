@@ -14,7 +14,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException)
             throws IOException {
-        SecurityResponseUtil.sendResponse(response, ResponseStatusCode.FORBIDDEN,
+        SecurityResponseUtils.sendResponse(response, ResponseStatusCode.FORBIDDEN,
                 "You are not authorized to access this resource");
     }
 }

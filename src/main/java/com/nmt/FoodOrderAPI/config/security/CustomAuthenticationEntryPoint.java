@@ -15,7 +15,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
             throws IOException {
-        SecurityResponseUtil.sendResponse(response, ResponseStatusCode.UNAUTHORIZED,
+        SecurityResponseUtils.sendResponse(response, ResponseStatusCode.UNAUTHORIZED,
                 "You are not authorized to access this resource");
     }
 }
