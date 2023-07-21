@@ -28,8 +28,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 Collections.singleton(new SimpleGrantedAuthority(user.getRole() ? "ROLE_ADMIN" : "ROLE_USER")));
     }
 
-    public User getCurrentUser()
-    {
+    public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
             return userRepo.findByUsername(authentication.getName());
