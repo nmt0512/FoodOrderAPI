@@ -24,7 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
-    private JwtUtil jwtUtil;
+    private JwtUtils jwtUtils;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -36,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
                 try {
                     jwtToken = requestTokenHeader.substring(7);
-                    username = jwtUtil.getUsernameFromToken(jwtToken);
+                    username = jwtUtils.getUsernameFromToken(jwtToken);
                 } catch (IllegalArgumentException | MalformedJwtException |
                          ExpiredJwtException | IndexOutOfBoundsException ignored) {
                 }
@@ -47,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
             PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             String encodedPassword = passwordEncoder.encode(userDetails.getPassword());
-            if (jwtUtil.validateToken(jwtToken, userDetails)) {
+            if (jwtUtils.validateToken(jwtToken, userDetails)) {
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                         new UsernamePasswordAuthenticationToken(userDetails.getUsername(),
                                 encodedPassword, userDetails.getAuthorities());

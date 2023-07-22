@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Component
-public class JwtUtil implements Serializable {
+public class JwtUtils implements Serializable {
 
     private static final long serialVersionUID = -2550185165626007488L;
     public static final long JWT_TOKEN_VALIDITY = 15 * 60 * 1000; //15 mins
