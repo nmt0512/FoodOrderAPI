@@ -8,8 +8,12 @@ import java.util.List;
 
 public interface BillService {
     BillResponse addBill(List<BillItemRequest> billItemRequestList);
+
     List<BillResponse> getAllBill(Integer page);
+
     List<BillResponse> getBillByFilter(Integer page, Integer status, String orderBy);
+
     void changeBillStatus(BillRequest billRequest);
+
     BillResponse getBillDetail(Integer billId);
 }

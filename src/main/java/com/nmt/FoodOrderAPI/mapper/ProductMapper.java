@@ -8,5 +8,6 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
     ProductResponse toProductResponse(Product entity);
+
     Product toProduct(ProductRequest productRequest);
 }
