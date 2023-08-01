@@ -23,7 +23,7 @@ public class StatisticController {
     }
 
     @GetMapping("/year")
-    public ResponseEntity<ResponseData<List<Integer>>> getAllStatisticYear() {
+    public ResponseEntity<ResponseData<List<Integer>>> getAllYearStatistic() {
         return ResponseUtils.success(statisticService.getAllStatisticYear());
     }
 

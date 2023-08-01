@@ -1,6 +1,7 @@
 package com.nmt.FoodOrderAPI.controller;
 
 import com.nmt.FoodOrderAPI.dto.*;
+import com.nmt.FoodOrderAPI.enums.BillStatusCode;
 import com.nmt.FoodOrderAPI.response.ResponseData;
 import com.nmt.FoodOrderAPI.response.ResponseUtils;
 import com.nmt.FoodOrderAPI.service.BillService;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/bill")
@@ -35,7 +37,7 @@ public class BillController {
     @PostMapping("/status")
     public ResponseEntity<ResponseMessage> confirmBill(@RequestBody BillRequest billRequest) {
         billService.changeBillStatus(billRequest);
-        if (billRequest.getStatus() == 3)
+        if (Objects.equals(billRequest.getStatus(), BillStatusCode.CANCELLED.getCode()))
             return ResponseEntity.ok(new ResponseMessage("Đã hủy!"));
         return ResponseEntity.ok(new ResponseMessage("Thành công!"));
     }

@@ -16,11 +16,11 @@ public class StatisticRepository {
     private final JdbcTemplate jdbcTemplate;
 
     public List<StatisticResponse> getMonthlyStatisticByYear(int year) {
-        StringBuilder query = new StringBuilder("SELECT FORMAT(Time, 'MM/yyyy') AS Time, SUM(TotalPrice) AS Revenue ")
-                .append("FROM Bill WHERE Status = 2 AND YEAR(Time) = ")
-                .append(year)
-                .append(" GROUP BY FORMAT(Time, 'MM/yyyy')");
-        return jdbcTemplate.query(query.toString(), new BeanPropertyRowMapper<>(StatisticResponse.class));
+        String query = "SELECT FORMAT(Time, 'MM/yyyy') AS Time, SUM(TotalPrice) AS Revenue " +
+                "FROM Bill WHERE Status = 2 AND YEAR(Time) = " +
+                year +
+                " GROUP BY FORMAT(Time, 'MM/yyyy')";
+        return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(StatisticResponse.class));
     }
 
     public List<Integer> getAllStatisticYear() {
