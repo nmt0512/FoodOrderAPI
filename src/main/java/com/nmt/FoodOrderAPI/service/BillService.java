@@ -3,6 +3,7 @@ package com.nmt.FoodOrderAPI.service;
 import com.nmt.FoodOrderAPI.dto.BillItemRequest;
 import com.nmt.FoodOrderAPI.dto.BillRequest;
 import com.nmt.FoodOrderAPI.dto.BillResponse;
+import com.nmt.FoodOrderAPI.dto.PrepaidRequest;
 
 import java.util.List;
 
@@ -16,4 +17,6 @@ public interface BillService {
     void changeBillStatus(BillRequest billRequest);
 
     BillResponse getBillDetail(Integer billId);
+
+    void prepaidBill(PrepaidRequest prepaidRequest);
 }

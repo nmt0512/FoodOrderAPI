@@ -46,19 +46,21 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf().disable()
                 .authorizeRequests()
+                .antMatchers("/api/auth/**")
+                .permitAll()
                 .antMatchers(
-                        "/api/banner/**",
-                        "/api/bill/**",
-                        "/api/home/**",
-                        "/api/statistic/**",
-                        "/api/user/**",
-                        "/api/logout"
+                        "/api/banner",
+                        "/api/bill/status",
+                        "/api/bill/all",
+                        "/api/bill/detail/**",
+                        "/api/statistic/**"
                 )
                 .hasRole("ADMIN")
-
-                .antMatchers("/api/login")
-                .permitAll()
-
+                .antMatchers(
+                        "/api/bill/prepaid",
+                        "/api/promotion"
+                )
+                .hasRole("USER")
                 .anyRequest()
                 .authenticated()
 

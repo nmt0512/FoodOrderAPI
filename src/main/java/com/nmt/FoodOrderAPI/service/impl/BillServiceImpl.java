@@ -119,15 +119,6 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public List<BillResponse> getAllBill(Integer page) {
-        Page<Bill> billList = billRepository.findAll(PageRequest.of(page - 1, 10));
-        return billList
-                .stream()
-                .map(billMapper::toBillResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     @Transactional
     public void changeBillStatus(BillRequest billRequest) {
         Bill bill = billRepository.findById(billRequest.getId()).get();
@@ -149,6 +140,55 @@ public class BillServiceImpl implements BillService {
                 productRepository.save(product);
             });
         }
+    }
+
+    @Override
+    @Transactional
+    public void prepaidBill(PrepaidRequest prepaidRequest) {
+        List<BillItemRequest> billItemRequestList = prepaidRequest.getBillItemRequestList();
+
+        Promotion usedPromotion = prepaidRequest.getPromotionId() != null
+                ?
+                promotionRepository.findById(prepaidRequest.getPromotionId()).get()
+                :
+                null;
+
+        Bill bill = Bill
+                .builder()
+                .time(new Timestamp(System.currentTimeMillis()))
+                .status(BillStatusCode.PREPAID.getCode())
+                .totalPrice(prepaidRequest.getTotalPrice())
+                .user(userDetailsService.getCurrentUser())
+                .promotion(usedPromotion)
+                .build();
+        bill = billRepository.save(bill);
+
+        for (BillItemRequest billItemRequest : billItemRequestList) {
+            BillItem billItem = BillItem
+                    .builder()
+                    .product(productRepository.findById(billItemRequest.getProductId()).get())
+                    .price(billItemRequest.getPrice())
+                    .quantity(billItemRequest.getQuantity())
+                    .bill(bill)
+                    .build();
+            billItemRepository.save(billItem);
+        }
+
+        billItemRequestList.forEach(billItemRequest -> {
+            Integer productId = billItemRequest.getProductId();
+            Product product = productRepository.findById(productId).get();
+            product.setQuantity(product.getQuantity() - billItemRequest.getQuantity());
+            productRepository.save(product);
+        });
+    }
+
+    @Override
+    public List<BillResponse> getAllBill(Integer page) {
+        Page<Bill> billList = billRepository.findAll(PageRequest.of(page - 1, 10));
+        return billList
+                .stream()
+                .map(billMapper::toBillResponse)
+                .collect(Collectors.toList());
     }
 
     @Override

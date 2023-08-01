@@ -7,7 +7,7 @@ import com.nmt.FoodOrderAPI.dto.UserResponse;
 public interface UserService {
     UserResponse getUserInformation();
 
-    UserResponse addUser(UserRequest userRequest);
+    void addUser(UserRequest userRequest);
 
     void deleteCurrentUser();
 

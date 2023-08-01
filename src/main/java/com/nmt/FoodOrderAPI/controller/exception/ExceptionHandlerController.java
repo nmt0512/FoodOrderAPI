@@ -6,10 +6,12 @@ import com.nmt.FoodOrderAPI.response.ResponseUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.validation.ConstraintViolationException;
+import java.sql.SQLException;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
@@ -51,4 +53,29 @@ public class ExceptionHandlerController {
                         .collect(Collectors.joining()),
                 HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(SQLException.class)
+    public ResponseEntity<ResponseData<Void>> handleSQLException(SQLException sqlException) {
+        if (sqlException.getMessage().contains("duplicate key in object"))
+            return ResponseUtils.error(400, "Username already exists", HttpStatus.BAD_REQUEST);
+        else {
+            sqlException.printStackTrace();
+            return null;
+        }
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ResponseData<Void>> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException methodArgumentNotValidException
+    ) {
+        String error = "Some error in request body";
+        if (methodArgumentNotValidException.getBindingResult().getFieldError() != null)
+            error = methodArgumentNotValidException.getBindingResult().getFieldError().getDefaultMessage();
+        return ResponseUtils.error(
+                400,
+                error,
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
 }
