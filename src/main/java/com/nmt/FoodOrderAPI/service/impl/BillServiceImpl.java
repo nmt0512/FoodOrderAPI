@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -71,7 +70,7 @@ public class BillServiceImpl implements BillService {
             billItemRepository.save(billItem);
         }
 
-        BillResponse billResponse = toBillResponse(bill);
+        BillResponse billResponse = billMapper.toBillResponse(bill);
 
         List<Promotion> applyingPromotionList = promotionRepository.findByApplyingPriceLessThanEqual(totalPrice);
         if (applyingPromotionList != null)
@@ -113,13 +112,19 @@ public class BillServiceImpl implements BillService {
                     :
                     billRepository.findByStatus(status, descTimePageable);
         }
-        return billList.stream().map(this::toBillResponse).collect(Collectors.toList());
+        return billList
+                .stream()
+                .map(billMapper::toBillResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<BillResponse> getAllBill(Integer page) {
         Page<Bill> billList = billRepository.findAll(PageRequest.of(page - 1, 10));
-        return billList.stream().map(this::toBillResponse).collect(Collectors.toList());
+        return billList
+                .stream()
+                .map(billMapper::toBillResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -150,7 +155,7 @@ public class BillServiceImpl implements BillService {
     public BillResponse getBillDetail(Integer billId) {
         Bill bill = billRepository.findById(billId).orElseThrow(NoSuchElementException::new);
 
-        BillResponse billResponse = toBillResponse(bill);
+        BillResponse billResponse = billMapper.toBillResponse(bill);
         billResponse.setBillItemResponseList(
                 bill.getBillItemList().stream().map(billItem -> {
                     Product product = billItem.getProduct();
@@ -177,10 +182,4 @@ public class BillServiceImpl implements BillService {
         return billResponse;
     }
 
-    private BillResponse toBillResponse(Bill bill) {
-        BillResponse billResponse = billMapper.toBillResponse(bill);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-        billResponse.setTime(dateFormat.format(bill.getTime()));
-        return billResponse;
-    }
 }

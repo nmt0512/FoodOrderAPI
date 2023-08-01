@@ -7,6 +7,6 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface BillMapper {
-    @Mapping(target = "time", ignore = true)
+    @Mapping(target = "time", dateFormat = "dd/MM/yyyy HH:mm")
     BillResponse toBillResponse(Bill bill);
 }
