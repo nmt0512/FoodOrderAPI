@@ -1,6 +1,6 @@
 package com.nmt.FoodOrderAPI.service.impl;
 
-import com.nmt.FoodOrderAPI.config.jwt.JwtUtils;
+import com.nmt.FoodOrderAPI.config.utils.JwtUtils;
 import com.nmt.FoodOrderAPI.config.security.UserDetailsServiceImpl;
 import com.nmt.FoodOrderAPI.dto.LoginRequest;
 import com.nmt.FoodOrderAPI.service.AuthenticationService;

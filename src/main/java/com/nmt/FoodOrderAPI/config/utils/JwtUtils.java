@@ -1,4 +1,4 @@
-package com.nmt.FoodOrderAPI.config.jwt;
+package com.nmt.FoodOrderAPI.config.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

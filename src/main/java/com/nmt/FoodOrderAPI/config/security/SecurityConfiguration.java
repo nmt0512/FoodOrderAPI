@@ -1,6 +1,6 @@
 package com.nmt.FoodOrderAPI.config.security;
 
-import com.nmt.FoodOrderAPI.config.jwt.JwtAuthenticationFilter;
+import com.nmt.FoodOrderAPI.config.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;

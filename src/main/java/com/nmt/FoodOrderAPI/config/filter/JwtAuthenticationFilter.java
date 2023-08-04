@@ -1,5 +1,6 @@
-package com.nmt.FoodOrderAPI.config.jwt;
+package com.nmt.FoodOrderAPI.config.filter;
 
+import com.nmt.FoodOrderAPI.config.utils.JwtUtils;
 import com.nmt.FoodOrderAPI.config.security.SecurityResponseUtils;
 import com.nmt.FoodOrderAPI.enums.ResponseStatusCode;
 import io.jsonwebtoken.ExpiredJwtException;
