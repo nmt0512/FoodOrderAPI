@@ -1,7 +1,10 @@
 package com.nmt.FoodOrderAPI.config.jwt;
 
+import com.nmt.FoodOrderAPI.config.security.SecurityResponseUtils;
+import com.nmt.FoodOrderAPI.enums.ResponseStatusCode;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,23 +29,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        String username = null;
-        String jwtToken = null;
         if (request.getHeader("Authorization") != null) {
-            String requestTokenHeader = request.getHeader("Authorization");
-            if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                try {
-                    jwtToken = requestTokenHeader.substring(7);
-                    username = jwtUtils.getUsernameFromToken(jwtToken);
-                } catch (IllegalArgumentException | MalformedJwtException |
-                         ExpiredJwtException | IndexOutOfBoundsException ignored) {
-                }
-            }
-        }
-
-        if (username != null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtUtils.validateToken(jwtToken, userDetails)) {
+            String token = request.getHeader("Authorization").substring(7);
+            try {
+                String username = jwtUtils.getTokenUsername(token);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails.getUsername(),
@@ -51,6 +42,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         );
                 usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+            } catch (MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
+                SecurityResponseUtils.sendResponse(response, ResponseStatusCode.BAD_REQUEST, "Invalid JWT Token");
+                return;
+            } catch (ExpiredJwtException e) {
+                SecurityResponseUtils.sendResponse(response, ResponseStatusCode.BAD_REQUEST, "JWT is expired");
+                return;
             }
         }
         chain.doFilter(request, response);
