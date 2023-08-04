@@ -83,42 +83,6 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public List<BillResponse> getBillByFilter(Integer page, Integer status, String orderBy) {
-        Page<Bill> billList;
-        Pageable ascTimePageable = PageRequest.of(
-                page - 1,
-                10,
-                Sort.by(Sort.Direction.ASC, "time"));
-        Pageable descTimePageable = PageRequest.of(
-                page - 1,
-                10,
-                Sort.by(Sort.Direction.DESC, "time"));
-
-        if (status == null) {
-            billList = orderBy.equals("oldest")
-                    ?
-                    billRepository.findAll(ascTimePageable)
-                    :
-                    billRepository.findAll(descTimePageable);
-        } else if (orderBy == null) {
-            billList = billRepository.findByStatus(status, PageRequest.of(
-                    page - 1,
-                    10)
-            );
-        } else {
-            billList = orderBy.equals("oldest")
-                    ?
-                    billRepository.findByStatus(status, ascTimePageable)
-                    :
-                    billRepository.findByStatus(status, descTimePageable);
-        }
-        return billList
-                .stream()
-                .map(billMapper::toBillResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     @Transactional
     public void changeBillStatus(BillRequest billRequest) {
         Bill bill = billRepository.findById(billRequest.getId()).get();
@@ -185,6 +149,42 @@ public class BillServiceImpl implements BillService {
     @Override
     public List<BillResponse> getAllBill(Integer page) {
         Page<Bill> billList = billRepository.findAll(PageRequest.of(page - 1, 10));
+        return billList
+                .stream()
+                .map(billMapper::toBillResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BillResponse> getBillByFilter(Integer page, Integer status, String orderBy) {
+        Page<Bill> billList;
+        Pageable ascTimePageable = PageRequest.of(
+                page - 1,
+                10,
+                Sort.by(Sort.Direction.ASC, "time"));
+        Pageable descTimePageable = PageRequest.of(
+                page - 1,
+                10,
+                Sort.by(Sort.Direction.DESC, "time"));
+
+        if (status == null) {
+            billList = orderBy.equals("oldest")
+                    ?
+                    billRepository.findAll(ascTimePageable)
+                    :
+                    billRepository.findAll(descTimePageable);
+        } else if (orderBy == null) {
+            billList = billRepository.findByStatus(status, PageRequest.of(
+                    page - 1,
+                    10)
+            );
+        } else {
+            billList = orderBy.equals("oldest")
+                    ?
+                    billRepository.findByStatus(status, ascTimePageable)
+                    :
+                    billRepository.findByStatus(status, descTimePageable);
+        }
         return billList
                 .stream()
                 .map(billMapper::toBillResponse)
