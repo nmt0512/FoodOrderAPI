@@ -5,11 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BillItemResponse {
+public class BillItemResponse implements Serializable {
     private ProductResponse product;
     private Integer quantity;
     private Integer price;

@@ -12,14 +12,20 @@ import com.nmt.FoodOrderAPI.repo.BillItemRepository;
 import com.nmt.FoodOrderAPI.repo.BillRepository;
 import com.nmt.FoodOrderAPI.repo.ProductRepository;
 import com.nmt.FoodOrderAPI.repo.PromotionRepository;
+import com.nmt.FoodOrderAPI.response.ResponseData;
 import com.nmt.FoodOrderAPI.service.BillService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -30,6 +36,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BillServiceImpl implements BillService {
     private final BillItemRepository billItemRepository;
     private final BillRepository billRepository;
@@ -84,7 +91,8 @@ public class BillServiceImpl implements BillService {
 
     @Override
     @Transactional
-    public void changeBillStatus(BillRequest billRequest) {
+    @CachePut(key = "#billRequest.id", value = "billDetailCache")
+    public BillResponse changeBillStatus(BillRequest billRequest) {
         Bill bill = billRepository.findById(billRequest.getId()).get();
         bill.setStatus(billRequest.getStatus());
         bill.setTotalPrice(billRequest.getNewTotalPrice());
@@ -101,9 +109,10 @@ public class BillServiceImpl implements BillService {
             billItemList.forEach(billItem -> {
                 Product product = billItem.getProduct();
                 product.setQuantity(product.getQuantity() - billItem.getQuantity());
-                productRepository.save(product);
+                productRepository.saveAndFlush(product);
             });
         }
+        return toBillResponse(bill);
     }
 
     @Override
@@ -156,6 +165,17 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
+    public Flux<BillResponse> getAllBillFlux() {
+        ResponseData<BillResponse> responseData = new ResponseData<>();
+        return Flux
+                .fromIterable(billRepository.findAll())
+                .flatMap(bill -> Mono.just(
+                                billMapper.toBillResponse(bill)
+                        )
+                );
+    }
+
+    @Override
     public List<BillResponse> getBillByFilter(Integer page, Integer status, String orderBy) {
         Page<Bill> billList;
         Pageable ascTimePageable = PageRequest.of(
@@ -192,9 +212,15 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
+    @Cacheable(key = "#billId", value = "billDetailCache")
     public BillResponse getBillDetail(Integer billId) {
-        Bill bill = billRepository.findById(billId).orElseThrow(NoSuchElementException::new);
+        Bill bill = billRepository
+                .findById(billId)
+                .orElseThrow(NoSuchElementException::new);
+        return toBillResponse(bill);
+    }
 
+    private BillResponse toBillResponse(Bill bill) {
         BillResponse billResponse = billMapper.toBillResponse(bill);
         billResponse.setBillItemResponseList(
                 bill.getBillItemList().stream().map(billItem -> {

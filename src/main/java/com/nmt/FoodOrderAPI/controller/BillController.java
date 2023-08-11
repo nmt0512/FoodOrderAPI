@@ -46,11 +46,16 @@ public class BillController {
             @RequestParam(name = "page") Integer page,
             @RequestParam(name = "status", required = false) Integer status,
             @RequestParam(name = "time", required = false) String orderBy) {
-        if(status == null && orderBy == null)
+        if (status == null && orderBy == null)
             return ResponseUtils.success(billService.getAllBill(page));
         else
             return ResponseUtils.success(billService.getBillByFilter(page, status, orderBy));
     }
+
+//    @GetMapping(value = "/all", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+//    public Flux<BillResponse> getAllBillFlux() {
+//        return billService.getAllBillFlux();
+//    }
 
     @GetMapping("/detail/{id}")
     public ResponseEntity<ResponseData<BillResponse>> getBillDetail(@PathVariable("id") Integer billId) {
