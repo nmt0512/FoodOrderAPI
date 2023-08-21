@@ -12,7 +12,6 @@ import com.nmt.FoodOrderAPI.repo.BillItemRepository;
 import com.nmt.FoodOrderAPI.repo.BillRepository;
 import com.nmt.FoodOrderAPI.repo.ProductRepository;
 import com.nmt.FoodOrderAPI.repo.PromotionRepository;
-import com.nmt.FoodOrderAPI.response.ResponseData;
 import com.nmt.FoodOrderAPI.service.BillService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,7 +68,10 @@ public class BillServiceImpl implements BillService {
         for (BillItemRequest billItemRequest : billItemRequestList) {
             BillItem billItem = BillItem
                     .builder()
-                    .product(productRepository.findById(billItemRequest.getProductId()).get())
+                    .product(productRepository
+                            .findById(billItemRequest.getProductId())
+                            .orElseThrow(NoSuchElementException::new)
+                    )
                     .price(billItemRequest.getPrice())
                     .quantity(billItemRequest.getQuantity())
                     .bill(bill)
@@ -93,13 +95,17 @@ public class BillServiceImpl implements BillService {
     @Transactional
     @CachePut(key = "#billRequest.id", value = "billDetailCache")
     public BillResponse changeBillStatus(BillRequest billRequest) {
-        Bill bill = billRepository.findById(billRequest.getId()).get();
+        Bill bill = billRepository
+                .findById(billRequest.getId())
+                .orElseThrow(NoSuchElementException::new);
         bill.setStatus(billRequest.getStatus());
         bill.setTotalPrice(billRequest.getNewTotalPrice());
         if (bill.getUser() != null)
             bill.setStaffName(userDetailsService.getCurrentUser().getFullname());
         if (billRequest.getPromotionId() != null) {
-            Promotion promotion = promotionRepository.findById(billRequest.getPromotionId()).get();
+            Promotion promotion = promotionRepository
+                    .findById(billRequest.getPromotionId())
+                    .orElseThrow(NoSuchElementException::new);
             bill.setPromotion(promotion);
         }
         bill = billRepository.save(bill);
@@ -122,7 +128,7 @@ public class BillServiceImpl implements BillService {
 
         Promotion usedPromotion = prepaidRequest.getPromotionId() != null
                 ?
-                promotionRepository.findById(prepaidRequest.getPromotionId()).get()
+                promotionRepository.findById(prepaidRequest.getPromotionId()).orElseThrow(NoSuchElementException::new)
                 :
                 null;
 
@@ -139,7 +145,10 @@ public class BillServiceImpl implements BillService {
         for (BillItemRequest billItemRequest : billItemRequestList) {
             BillItem billItem = BillItem
                     .builder()
-                    .product(productRepository.findById(billItemRequest.getProductId()).get())
+                    .product(productRepository
+                            .findById(billItemRequest.getProductId())
+                            .orElseThrow(NoSuchElementException::new)
+                    )
                     .price(billItemRequest.getPrice())
                     .quantity(billItemRequest.getQuantity())
                     .bill(bill)
@@ -149,7 +158,9 @@ public class BillServiceImpl implements BillService {
 
         billItemRequestList.forEach(billItemRequest -> {
             Integer productId = billItemRequest.getProductId();
-            Product product = productRepository.findById(productId).get();
+            Product product = productRepository
+                    .findById(productId)
+                    .orElseThrow(NoSuchElementException::new);
             product.setQuantity(product.getQuantity() - billItemRequest.getQuantity());
             productRepository.save(product);
         });
@@ -166,7 +177,6 @@ public class BillServiceImpl implements BillService {
 
     @Override
     public Flux<BillResponse> getAllBillFlux() {
-        ResponseData<BillResponse> responseData = new ResponseData<>();
         return Flux
                 .fromIterable(billRepository.findAll())
                 .flatMap(bill -> Mono.just(
