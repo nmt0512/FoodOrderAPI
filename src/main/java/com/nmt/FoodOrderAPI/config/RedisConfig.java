@@ -38,10 +38,6 @@ public class RedisConfig {
                         RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(30))
                 )
                 .withCacheConfiguration(
-                        "promotionCache",
-                        RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(30))
-                )
-                .withCacheConfiguration(
                         "billDetailCache",
                         RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10))
                 );

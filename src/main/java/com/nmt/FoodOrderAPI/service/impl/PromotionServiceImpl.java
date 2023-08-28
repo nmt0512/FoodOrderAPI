@@ -5,7 +5,6 @@ import com.nmt.FoodOrderAPI.dto.PromotionDetailResponse;
 import com.nmt.FoodOrderAPI.mapper.PromotionMappper;
 import com.nmt.FoodOrderAPI.service.PromotionService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,7 +17,6 @@ public class PromotionServiceImpl implements PromotionService {
     private final PromotionMappper promotionMappper;
 
     @Override
-    @Cacheable(value = "promotionCache")
     public List<PromotionDetailResponse> getAllCurrentUserPromotion() {
         return userDetailsService
                 .getCurrentUser()
