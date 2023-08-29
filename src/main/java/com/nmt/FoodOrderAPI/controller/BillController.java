@@ -42,10 +42,11 @@ public class BillController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<ResponseData<List<BillResponse>>> getAllBill(
+    public ResponseEntity<ResponseData<List<BillResponse>>> getAllBillOrByFilter(
             @RequestParam(name = "page") Integer page,
             @RequestParam(name = "status", required = false) Integer status,
-            @RequestParam(name = "time", required = false) String orderBy) {
+            @RequestParam(name = "time", required = false) String orderBy
+    ) {
         if (status == null && orderBy == null)
             return ResponseUtils.success(billService.getAllBill(page));
         else
