@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class StatisticResponse {
     @SerializedName("Time")
     private String time;
+
     @SerializedName("Revenue")
     private Integer revenue;
 }
