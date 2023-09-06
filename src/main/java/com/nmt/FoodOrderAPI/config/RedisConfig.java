@@ -55,7 +55,7 @@ public class RedisConfig {
         return template;
     }
 
-    @CacheEvict(value = {"bannerCache", "promotionCache", "billDetailCache"}, allEntries = true)
+    @CacheEvict(value = {"bannerCache", "billDetailCache"}, allEntries = true)
     private void clearAllCache() {
         log.info("Cleared all cache in Redis");
     }
