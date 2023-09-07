@@ -1,5 +1,6 @@
 package com.nmt.FoodOrderAPI.service.impl;
 
+import com.corundumstudio.socketio.SocketIOServer;
 import com.nmt.FoodOrderAPI.config.security.UserDetailsServiceImpl;
 import com.nmt.FoodOrderAPI.dto.*;
 import com.nmt.FoodOrderAPI.entity.*;
@@ -46,6 +47,7 @@ public class BillServiceImpl implements BillService {
     private final PromotionMappper promotionMappper;
     private final ProductMapper productMapper;
     private final UserMapper userMapper;
+    private final SocketIOServer socketIOServer;
 
 
     @Override
@@ -123,7 +125,7 @@ public class BillServiceImpl implements BillService {
 
     @Override
     @Transactional
-    public void prepaidBill(PrepaidRequest prepaidRequest) {
+    public ResponseMessage prepaidBill(PrepaidRequest prepaidRequest) {
         List<BillItemRequest> billItemRequestList = prepaidRequest.getBillItemRequestList();
 
         Promotion usedPromotion = prepaidRequest.getPromotionId() != null
@@ -164,6 +166,11 @@ public class BillServiceImpl implements BillService {
             product.setQuantity(product.getQuantity() - billItemRequest.getQuantity());
             productRepository.save(product);
         });
+
+        ResponseMessage responseMessage = new ResponseMessage("Thành công");
+        socketIOServer.getBroadcastOperations().sendEvent("bill", responseMessage);
+
+        return responseMessage;
     }
 
     @Override

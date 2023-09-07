@@ -1,6 +1,5 @@
 package com.nmt.FoodOrderAPI.controller;
 
-import com.corundumstudio.socketio.SocketIOServer;
 import com.nmt.FoodOrderAPI.dto.*;
 import com.nmt.FoodOrderAPI.enums.BillStatusCode;
 import com.nmt.FoodOrderAPI.response.ResponseData;
@@ -18,7 +17,6 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class BillController {
     private final BillService billService;
-    private final SocketIOServer socketIOServer;
 
     @PostMapping
     public ResponseEntity<ResponseData<BillResponse>> addBill(@RequestBody List<BillItemRequest> billItemRequestList) {
@@ -35,10 +33,7 @@ public class BillController {
 
     @PostMapping("/prepaid")
     public ResponseEntity<ResponseMessage> prepaidBill(@RequestBody PrepaidRequest prepaidRequest) {
-        billService.prepaidBill(prepaidRequest);
-        ResponseMessage responseMessage = new ResponseMessage("Thành công");
-        socketIOServer.getBroadcastOperations().sendEvent("bill", responseMessage);
-        return ResponseEntity.ok(responseMessage);
+        return ResponseEntity.ok(billService.prepaidBill(prepaidRequest));
     }
 
     @GetMapping("/all")
