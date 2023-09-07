@@ -24,8 +24,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -180,16 +178,6 @@ public class BillServiceImpl implements BillService {
                 .stream()
                 .map(billMapper::toBillResponse)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public Flux<BillResponse> getAllBillFlux() {
-        return Flux
-                .fromIterable(billRepository.findAll())
-                .flatMap(bill -> Mono.just(
-                                billMapper.toBillResponse(bill)
-                        )
-                );
     }
 
     @Override
