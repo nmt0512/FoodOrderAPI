@@ -1,5 +1,8 @@
 ﻿USE FoodStore
 
+ALTER TABLE DBUser 
+ALTER COLUMN Role int NOT NULL
+
 INSERT INTO Category(Code, Name) VALUES('Thuc-uong', N'Thức uống')
 
 UPDATE Category SET Code = 'thuc-uong' WHERE Id = 2

@@ -5,6 +5,7 @@ import com.nmt.FoodOrderAPI.dto.ChangingPasswordRequest;
 import com.nmt.FoodOrderAPI.dto.UserRequest;
 import com.nmt.FoodOrderAPI.dto.UserResponse;
 import com.nmt.FoodOrderAPI.entity.User;
+import com.nmt.FoodOrderAPI.enums.UserRolesCode;
 import com.nmt.FoodOrderAPI.exception.OldPasswordNotMatchException;
 import com.nmt.FoodOrderAPI.mapper.UserMapper;
 import com.nmt.FoodOrderAPI.repo.UserRepository;
@@ -30,7 +31,7 @@ public class UserServiceImpl implements UserService {
     public void addUser(UserRequest userRequest) {
         User user = userMapper.toUser(userRequest);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole(false);
+        user.setRole(UserRolesCode.USER.getCode());
         userMapper.toUserResponse(userRepository.save(user));
     }
 

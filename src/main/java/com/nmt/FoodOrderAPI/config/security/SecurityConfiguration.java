@@ -55,7 +55,7 @@ public class SecurityConfiguration {
                         "/api/bill/detail/**",
                         "/api/statistic/**"
                 )
-                .hasRole("ADMIN")
+                .hasRole("STAFF")
                 .antMatchers(
                         "/api/bill/prepaid",
                         "/api/promotion"

@@ -1,6 +1,7 @@
 package com.nmt.FoodOrderAPI.config.security;
 
 import com.nmt.FoodOrderAPI.entity.User;
+import com.nmt.FoodOrderAPI.enums.UserRolesCode;
 import com.nmt.FoodOrderAPI.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -12,7 +13,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Objects;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -24,8 +27,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepo.findByUsername(username);
         if (user == null)
             throw new UsernameNotFoundException(username);
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
-                Collections.singleton(new SimpleGrantedAuthority(user.getRole() ? "ROLE_ADMIN" : "ROLE_USER")));
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPassword(),
+                Collections.singleton(
+                        new SimpleGrantedAuthority(
+                                Arrays.stream(UserRolesCode.values())
+                                        .filter(userRolesCode -> Objects.equals(userRolesCode.getCode(), user.getRole()))
+                                        .findAny()
+                                        .map(UserRolesCode::getRole)
+                                        .orElseThrow(() -> new RuntimeException("Role not found"))
+                        )
+                )
+        );
     }
 
     public User getCurrentUser() {

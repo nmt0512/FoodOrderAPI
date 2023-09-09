@@ -45,7 +45,7 @@ public class User {
     private String phone;
 
     @Column(name = "Role", nullable = false)
-    private Boolean role;
+    private Integer role;
 
     @OneToMany(mappedBy = "user")
     private List<Bill> billList;
