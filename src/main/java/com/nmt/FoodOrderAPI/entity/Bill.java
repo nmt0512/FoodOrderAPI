@@ -30,18 +30,18 @@ public class Bill {
     @Column(name = "Status", nullable = false)
     private Integer status;
 
-    @Nationalized
-    @Column(name = "StaffName")
-    private String staffName;
-
-    @OneToMany(mappedBy = "bill")
-    private List<BillItem> billItemList;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "StaffId")
+    private User staff;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "UserId", nullable = false)
-    private User user;
+    @JoinColumn(name = "CustomerId", nullable = false)
+    private User customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PromotionId")
     private Promotion promotion;
+
+    @OneToMany(mappedBy = "bill")
+    private List<BillItem> billItemList;
 }

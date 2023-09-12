@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum UserRolesCode {
-    USER("ROLE_USER", 0),
+    CUSTOMER("ROLE_CUSTOMER", 0),
     STAFF("ROLE_STAFF", 1),
     SHIPPER("ROLE_SHIPPER", 2);
 

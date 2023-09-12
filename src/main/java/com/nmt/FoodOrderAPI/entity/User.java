@@ -47,13 +47,17 @@ public class User {
     @Column(name = "Role", nullable = false)
     private Integer role;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "customer")
     private List<Bill> billList;
+
+    @OneToMany(mappedBy = "staff")
+    private List<Bill> staffBillList;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "DBUserPromotion",
             joinColumns = @JoinColumn(name = "UserId"),
-            inverseJoinColumns = @JoinColumn(name = "PromotionId"))
+            inverseJoinColumns = @JoinColumn(name = "PromotionId")
+    )
     private List<Promotion> promotionList;
 }

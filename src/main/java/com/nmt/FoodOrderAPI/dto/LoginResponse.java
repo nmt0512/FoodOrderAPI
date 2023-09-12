@@ -1,23 +1,13 @@
 package com.nmt.FoodOrderAPI.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 public class LoginResponse {
-    private final String jwtToken;
-    private Boolean isAdmin;
+    @JsonProperty("access-token")
+    private final String token;
 
-    public LoginResponse(String jwtToken) {
-        this.jwtToken = jwtToken;
-    }
-
-    public LoginResponse(String jwtToken, Boolean isAdmin) {
-        this.jwtToken = jwtToken;
-        this.isAdmin = isAdmin;
-    }
-
-    public String getToken() {
-        return this.jwtToken;
-    }
-
-    public Boolean getIsAdmin() {
-        return isAdmin;
-    }
+    @JsonProperty("role")
+    private final Integer roleCode;
 }

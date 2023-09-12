@@ -31,7 +31,7 @@ public class UserServiceImpl implements UserService {
     public void addUser(UserRequest userRequest) {
         User user = userMapper.toUser(userRequest);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole(UserRolesCode.USER.getCode());
+        user.setRole(UserRolesCode.CUSTOMER.getCode());
         userMapper.toUserResponse(userRepository.save(user));
     }
 

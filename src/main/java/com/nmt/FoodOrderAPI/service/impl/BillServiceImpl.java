@@ -60,8 +60,8 @@ public class BillServiceImpl implements BillService {
                 .time(new Timestamp(System.currentTimeMillis()))
                 .status(BillStatusCode.PENDING.getCode())
                 .totalPrice(totalPrice)
-                .user(null)
-                .staffName(userDetailsService.getCurrentUser().getFullname())
+                .customer(null)
+                .staff(userDetailsService.getCurrentUser())
                 .build();
         bill = billRepository.save(bill);
 
@@ -100,8 +100,8 @@ public class BillServiceImpl implements BillService {
                 .orElseThrow(NoSuchElementException::new);
         bill.setStatus(billRequest.getStatus());
         bill.setTotalPrice(billRequest.getNewTotalPrice());
-        if (bill.getUser() != null)
-            bill.setStaffName(userDetailsService.getCurrentUser().getFullname());
+        if (bill.getCustomer() != null)
+            bill.setStaff(userDetailsService.getCurrentUser());
         if (billRequest.getPromotionId() != null) {
             Promotion promotion = promotionRepository
                     .findById(billRequest.getPromotionId())
@@ -137,7 +137,7 @@ public class BillServiceImpl implements BillService {
                 .time(new Timestamp(System.currentTimeMillis()))
                 .status(BillStatusCode.PREPAID.getCode())
                 .totalPrice(prepaidRequest.getTotalPrice())
-                .user(userDetailsService.getCurrentUser())
+                .customer(userDetailsService.getCurrentUser())
                 .promotion(usedPromotion)
                 .build();
         bill = billRepository.save(bill);
@@ -246,8 +246,8 @@ public class BillServiceImpl implements BillService {
         if (bill.getPromotion() != null)
             billResponse.setUsedPromotionResponse(promotionMappper.toPromotionResponse(bill.getPromotion()));
 
-        if (bill.getUser() != null) {
-            UserResponse userResponse = userMapper.toUserResponse(bill.getUser());
+        if (bill.getCustomer() != null) {
+            UserResponse userResponse = userMapper.toUserResponse(bill.getCustomer());
             billResponse.setUserResponse(userResponse);
         }
         return billResponse;

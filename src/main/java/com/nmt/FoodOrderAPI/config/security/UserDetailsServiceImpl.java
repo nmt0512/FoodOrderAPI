@@ -36,7 +36,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                                         .filter(userRolesCode -> Objects.equals(userRolesCode.getCode(), user.getRole()))
                                         .findAny()
                                         .map(UserRolesCode::getRole)
-                                        .orElseThrow(() -> new RuntimeException("Role not found"))
+                                        .orElseThrow(() -> new RuntimeException("Invalid user role"))
                         )
                 )
         );

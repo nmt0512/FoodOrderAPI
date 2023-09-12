@@ -107,10 +107,13 @@ UPDATE DBUser SET Username = 'thieunm' WHERE Username = 'admin123'
 UPDATE Bill SET StaffName = N'Lê Đức Thọ'
 
 ALTER TABLE Bill 
-ALTER COLUMN StaffName nvarchar(255) NULL
+DROP COLUMN StaffName
 
 SELECT * FROM DBUserPromotion
 
 INSERT INTO DBUserPromotion VALUES(15, 3)
 
 UPDATE Bill SET Status = 3 WHERE Id = 195
+
+UPDATE Bill SET StaffId = (SELECT Id FROM DBUser WHERE Bill.StaffName = DBUser.Fullname)
+
