@@ -18,7 +18,11 @@ public class BillResponse implements Serializable {
     private Integer id;
     private Integer totalPrice;
     private String time;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer status;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String staffName;
 
     @JsonProperty("givenPromotion")
@@ -33,7 +37,6 @@ public class BillResponse implements Serializable {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private PromotionResponse usedPromotionResponse;
 
-    @JsonProperty("user")
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private UserResponse userResponse;
+    private UserResponse customer;
 }

@@ -5,10 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
-import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import javax.validation.constraints.Min;
@@ -16,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -42,16 +42,14 @@ public class Product {
     private LocalDateTime createdDate;
 
     @LastModifiedDate
-    @Column(name = "UpdatedDate")
+    @Column(name = "UpdatedDate", insertable = false)
     private LocalDateTime updatedDate;
 
     @Nationalized
-    @CreatedBy
     @Column(name = "CreatedBy", updatable = false, length = 100)
     private String createdBy;
 
     @Nationalized
-    @LastModifiedBy
     @Column(name = "UpdatedBy", length = 100)
     private String updatedBy;
 
@@ -72,4 +70,7 @@ public class Product {
 
     @OneToMany(mappedBy = "product")
     private List<BillItem> billItemList;
+
+    @OneToMany(mappedBy = "product")
+    private List<PendingPrepaidBillItem> pendingPrepaidBillItemList;
 }

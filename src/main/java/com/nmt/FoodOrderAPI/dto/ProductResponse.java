@@ -17,5 +17,5 @@ public class ProductResponse implements Serializable {
     private String description;
     private Integer quantity;
     private Integer unitPrice;
-    private List<String> imageLinks;
+    private List<String> imageList;
 }

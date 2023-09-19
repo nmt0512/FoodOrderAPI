@@ -26,6 +26,7 @@ public class SecurityConfiguration {
     private final AuthenticationEntryPoint authenticationEntryPoint;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final LogoutSuccessHandler logoutSuccessHandler;
+    private final LogoutHandlerImpl logoutHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -46,21 +47,32 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/api/auth/**")
+                .antMatchers(
+                        "/api/auth/login",
+                        "/api/auth/register"
+                )
                 .permitAll()
                 .antMatchers(
                         "/api/banner",
+                        "/api/bill",
                         "/api/bill/status",
                         "/api/bill/all",
                         "/api/bill/detail/**",
-                        "/api/statistic/**"
+                        "/api/statistic/**",
+                        "/api/tracking/**"
                 )
                 .hasRole("STAFF")
                 .antMatchers(
                         "/api/bill/prepaid",
+                        "/api/bill/pending-prepaid",
                         "/api/promotion"
                 )
-                .hasRole("USER")
+                .hasRole("CUSTOMER")
+                .antMatchers(
+                        "/api/bill/pending-prepaid/all",
+                        "/api/bill/pending-prepaid/receive"
+                )
+                .hasRole("SHIPPER")
                 .anyRequest()
                 .authenticated()
 
@@ -77,10 +89,10 @@ public class SecurityConfiguration {
                 .and()
 
                 .logout()
-                .logoutUrl("/api/logout")
+                .logoutUrl("/api/auth/logout")
+                .addLogoutHandler(logoutHandler)
                 .logoutSuccessHandler(logoutSuccessHandler)
                 .invalidateHttpSession(true)
-                .permitAll()
 
                 .and()
 

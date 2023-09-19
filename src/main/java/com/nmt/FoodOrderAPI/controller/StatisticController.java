@@ -1,5 +1,6 @@
 package com.nmt.FoodOrderAPI.controller;
 
+import com.nmt.FoodOrderAPI.dto.MonthlyStatisticResponse;
 import com.nmt.FoodOrderAPI.dto.StatisticResponse;
 import com.nmt.FoodOrderAPI.response.ResponseData;
 import com.nmt.FoodOrderAPI.response.ResponseUtils;
@@ -17,7 +18,7 @@ public class StatisticController {
     private StatisticService statisticService;
 
     @GetMapping("/year/{year}")
-    public ResponseEntity<ResponseData<List<StatisticResponse>>> getMonthlyStatisticByYear(
+    public ResponseEntity<ResponseData<MonthlyStatisticResponse>> getMonthlyStatisticByYear(
             @PathVariable(name = "year") Integer year) {
         return ResponseUtils.success(statisticService.getMonthlyStatisticByYear(year));
     }

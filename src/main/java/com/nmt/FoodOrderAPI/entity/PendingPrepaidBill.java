@@ -1,5 +1,6 @@
 package com.nmt.FoodOrderAPI.entity;
 
+import com.nmt.FoodOrderAPI.exception.PendingPrepaidUpdateException;
 import lombok.*;
 
 import javax.persistence.*;
@@ -13,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Bill {
+public class PendingPrepaidBill {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Id")
@@ -26,25 +27,29 @@ public class Bill {
     @Column(name = "Time", nullable = false)
     private Timestamp time;
 
-    @Column(name = "Status", nullable = false)
-    private Integer status;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "StaffId")
-    private User staff;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CustomerId")
     private User customer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ShipperId")
-    private User shipper;
+    @Column(name = "Received", columnDefinition = "bit DEFAULT 0")
+    private Boolean received;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PromotionId")
     private Promotion promotion;
 
-    @OneToMany(mappedBy = "bill", cascade = CascadeType.PERSIST)
-    private List<BillItem> billItemList;
+    @OneToMany(mappedBy = "pendingPrepaidBill", cascade = CascadeType.ALL)
+    private List<PendingPrepaidBillItem> pendingPrepaidBillItemList;
+
+    @PrePersist
+    public void prePersist() {
+        if (received == null)
+            received = false;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        if (received)
+            throw new PendingPrepaidUpdateException("Bill was received by a shipper and update failed");
+    }
 }

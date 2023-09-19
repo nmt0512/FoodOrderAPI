@@ -2,6 +2,7 @@ package com.nmt.FoodOrderAPI.service.impl;
 
 import com.nmt.FoodOrderAPI.config.security.UserDetailsServiceImpl;
 import com.nmt.FoodOrderAPI.dto.PromotionDetailResponse;
+import com.nmt.FoodOrderAPI.entity.Promotion;
 import com.nmt.FoodOrderAPI.mapper.PromotionMappper;
 import com.nmt.FoodOrderAPI.service.PromotionService;
 import lombok.RequiredArgsConstructor;
@@ -18,15 +19,10 @@ public class PromotionServiceImpl implements PromotionService {
 
     @Override
     public List<PromotionDetailResponse> getAllCurrentUserPromotion() {
-        return userDetailsService
-                .getCurrentUser()
-                .getPromotionList()
+        List<Promotion> promotionList = userDetailsService.getCurrentUser().getPromotionList();
+        return promotionList
                 .stream()
-                .map(promotion -> {
-                    PromotionDetailResponse promotionDetailResponse = promotionMappper.toPromotionDetailResponse(promotion);
-                    promotionDetailResponse.setPromotionDetail("Giảm " + promotionDetailResponse.getPercentage() + "%");
-                    return promotionDetailResponse;
-                })
+                .map(promotionMappper::toPromotionDetailResponse)
                 .collect(Collectors.toList());
     }
 }

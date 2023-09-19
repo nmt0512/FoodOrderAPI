@@ -7,9 +7,13 @@ import java.util.List;
 public interface BillService {
     BillResponse addBill(List<BillItemRequest> billItemRequestList);
 
-    BillResponse changeBillStatus(BillRequest billRequest);
+    ResponseMessage confirmOrCancelBill(String token, BillRequest billRequest);
 
     ResponseMessage prepaidBill(PrepaidRequest prepaidRequest);
+
+    ResponseMessage orderPendingPrepaidBill(PrepaidRequest prepaidRequest);
+
+    List<BillResponse> getAllPendingPrepaidBill();
 
     BillResponse getBillDetail(Integer billId);
 

@@ -1,23 +1,35 @@
 package com.nmt.FoodOrderAPI.service.impl;
 
+import com.nmt.FoodOrderAPI.dto.MonthlyStatisticResponse;
 import com.nmt.FoodOrderAPI.dto.StatisticResponse;
 import com.nmt.FoodOrderAPI.repo.StatisticRepository;
 import com.nmt.FoodOrderAPI.service.StatisticService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
+@RequiredArgsConstructor
 public class StatisticServiceImpl implements StatisticService {
-    @Autowired
-    private StatisticRepository statisticRepository;
+    private final StatisticRepository statisticRepository;
 
     @Override
-    public List<StatisticResponse> getMonthlyStatisticByYear(int year) {
-        return statisticRepository.getMonthlyStatisticByYear(year);
+    public MonthlyStatisticResponse getMonthlyStatisticByYear(int year) {
+        List<StatisticResponse> statisticResponses = statisticRepository.getMonthlyStatisticByYear(year);
+        Integer maxMonthRevenue = statisticResponses
+                .stream()
+                .mapToInt(StatisticResponse::getRevenue)
+                .max()
+                .orElseThrow(() -> new NoSuchElementException("No statistic response found"));
+        Integer totalRevenue = statisticResponses
+                .stream()
+                .mapToInt(StatisticResponse::getRevenue)
+                .sum();
+        return new MonthlyStatisticResponse(totalRevenue, maxMonthRevenue, statisticResponses);
     }
 
     @Override

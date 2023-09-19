@@ -2,22 +2,16 @@ package com.nmt.FoodOrderAPI.service.impl;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import com.nmt.FoodOrderAPI.config.security.UserDetailsServiceImpl;
+import com.nmt.FoodOrderAPI.config.utils.JwtUtils;
 import com.nmt.FoodOrderAPI.dto.*;
 import com.nmt.FoodOrderAPI.entity.*;
 import com.nmt.FoodOrderAPI.enums.BillStatusCode;
 import com.nmt.FoodOrderAPI.mapper.BillMapper;
-import com.nmt.FoodOrderAPI.mapper.ProductMapper;
 import com.nmt.FoodOrderAPI.mapper.PromotionMappper;
-import com.nmt.FoodOrderAPI.mapper.UserMapper;
-import com.nmt.FoodOrderAPI.repo.BillItemRepository;
-import com.nmt.FoodOrderAPI.repo.BillRepository;
-import com.nmt.FoodOrderAPI.repo.ProductRepository;
-import com.nmt.FoodOrderAPI.repo.PromotionRepository;
+import com.nmt.FoodOrderAPI.repo.*;
 import com.nmt.FoodOrderAPI.service.BillService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,16 +30,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class BillServiceImpl implements BillService {
-    private final BillItemRepository billItemRepository;
     private final BillRepository billRepository;
     private final PromotionRepository promotionRepository;
     private final ProductRepository productRepository;
+    private final StaffTrackingRepository staffTrackingRepository;
+    private final PendingPrepaidBillRepository pendingPrepaidBillRepository;
     private final UserDetailsServiceImpl userDetailsService;
     private final BillMapper billMapper;
     private final PromotionMappper promotionMappper;
-    private final ProductMapper productMapper;
-    private final UserMapper userMapper;
     private final SocketIOServer socketIOServer;
+    private final JwtUtils jwtUtils;
 
 
     @Override
@@ -63,29 +57,16 @@ public class BillServiceImpl implements BillService {
                 .customer(null)
                 .staff(userDetailsService.getCurrentUser())
                 .build();
-        bill = billRepository.save(bill);
 
-        for (BillItemRequest billItemRequest : billItemRequestList) {
-            BillItem billItem = BillItem
-                    .builder()
-                    .product(productRepository
-                            .findById(billItemRequest.getProductId())
-                            .orElseThrow(NoSuchElementException::new)
-                    )
-                    .price(billItemRequest.getPrice())
-                    .quantity(billItemRequest.getQuantity())
-                    .bill(bill)
-                    .build();
-            billItemRepository.save(billItem);
-        }
-
-        BillResponse billResponse = billMapper.toBillResponse(bill);
+        BillResponse billResponse = billMapper.mapBillToBillResponse(saveBillByBillItemRequestList(bill, billItemRequestList));
 
         List<Promotion> applyingPromotionList = promotionRepository.findByApplyingPriceLessThanEqual(totalPrice);
         if (applyingPromotionList != null)
-            billResponse.setGivenPromotionResponseList(applyingPromotionList.stream()
-                    .map(promotionMappper::toPromotionResponse)
-                    .collect(Collectors.toList()));
+            billResponse.setGivenPromotionResponseList(
+                    applyingPromotionList.stream()
+                            .map(promotionMappper::toPromotionResponse)
+                            .collect(Collectors.toList())
+            );
         else
             billResponse.setGivenPromotionResponseList(new ArrayList<>());
         return billResponse;
@@ -93,11 +74,10 @@ public class BillServiceImpl implements BillService {
 
     @Override
     @Transactional
-    @CachePut(key = "#billRequest.id", value = "billDetailCache")
-    public BillResponse changeBillStatus(BillRequest billRequest) {
+    public ResponseMessage confirmOrCancelBill(String token, BillRequest billRequest) {
         Bill bill = billRepository
                 .findById(billRequest.getId())
-                .orElseThrow(NoSuchElementException::new);
+                .orElseThrow(() -> new NoSuchElementException("No such bill found"));
         bill.setStatus(billRequest.getStatus());
         bill.setTotalPrice(billRequest.getNewTotalPrice());
         if (bill.getCustomer() != null)
@@ -105,20 +85,30 @@ public class BillServiceImpl implements BillService {
         if (billRequest.getPromotionId() != null) {
             Promotion promotion = promotionRepository
                     .findById(billRequest.getPromotionId())
-                    .orElseThrow(NoSuchElementException::new);
+                    .orElseThrow(() -> new NoSuchElementException("No such promotion found"));
             bill.setPromotion(promotion);
         }
         bill = billRepository.save(bill);
 
-        if (!Objects.equals(billRequest.getStatus(), BillStatusCode.CANCELLED.getCode())) {
+        if (Objects.equals(billRequest.getStatus(), BillStatusCode.COMPLETED.getCode())) {
             List<BillItem> billItemList = bill.getBillItemList();
             billItemList.forEach(billItem -> {
                 Product product = billItem.getProduct();
                 product.setQuantity(product.getQuantity() - billItem.getQuantity());
                 productRepository.saveAndFlush(product);
             });
+
+            int trackingId = jwtUtils.getTokenStaffTrackingId(token.substring(7));
+            StaffTracking staffTracking = staffTrackingRepository
+                    .findById(trackingId)
+                    .orElseThrow(() -> new NoSuchElementException("No such Staff Tracking found"));
+            staffTracking.setRevenue(staffTracking.getRevenue() + billRequest.getNewTotalPrice());
+            staffTrackingRepository.save(staffTracking);
         }
-        return toBillResponse(bill);
+
+        if (Objects.equals(BillStatusCode.COMPLETED.getCode(), billRequest.getStatus()))
+            return new ResponseMessage(BillStatusCode.COMPLETED.getMessage());
+        return new ResponseMessage(BillStatusCode.CANCELLED.getMessage());
     }
 
     @Override
@@ -128,7 +118,9 @@ public class BillServiceImpl implements BillService {
 
         Promotion usedPromotion = prepaidRequest.getPromotionId() != null
                 ?
-                promotionRepository.findById(prepaidRequest.getPromotionId()).orElseThrow(NoSuchElementException::new)
+                promotionRepository
+                        .findById(prepaidRequest.getPromotionId())
+                        .orElseThrow(() -> new NoSuchElementException("No such promotion found"))
                 :
                 null;
 
@@ -138,37 +130,78 @@ public class BillServiceImpl implements BillService {
                 .status(BillStatusCode.PREPAID.getCode())
                 .totalPrice(prepaidRequest.getTotalPrice())
                 .customer(userDetailsService.getCurrentUser())
+                .staff(null)
                 .promotion(usedPromotion)
                 .build();
-        bill = billRepository.save(bill);
 
-        for (BillItemRequest billItemRequest : billItemRequestList) {
-            BillItem billItem = BillItem
-                    .builder()
-                    .product(productRepository
-                            .findById(billItemRequest.getProductId())
-                            .orElseThrow(NoSuchElementException::new)
-                    )
-                    .price(billItemRequest.getPrice())
-                    .quantity(billItemRequest.getQuantity())
-                    .bill(bill)
-                    .build();
-            billItemRepository.save(billItem);
-        }
+        saveBillByBillItemRequestList(bill, billItemRequestList);
 
         billItemRequestList.forEach(billItemRequest -> {
             Integer productId = billItemRequest.getProductId();
             Product product = productRepository
                     .findById(productId)
-                    .orElseThrow(NoSuchElementException::new);
+                    .orElseThrow(() -> new NoSuchElementException("No such product found"));
             product.setQuantity(product.getQuantity() - billItemRequest.getQuantity());
             productRepository.save(product);
         });
 
-        ResponseMessage responseMessage = new ResponseMessage("Thành công");
-        socketIOServer.getBroadcastOperations().sendEvent("bill", responseMessage);
+        ResponseMessage responseMessage = new ResponseMessage(BillStatusCode.PREPAID.getMessage());
+
+        socketIOServer.getBroadcastOperations().sendEvent("prepaidBill", responseMessage);
 
         return responseMessage;
+    }
+
+    @Override
+    @Transactional
+    public ResponseMessage orderPendingPrepaidBill(PrepaidRequest prepaidRequest) {
+        List<BillItemRequest> billItemRequestList = prepaidRequest.getBillItemRequestList();
+
+        Promotion usedPromotion = prepaidRequest.getPromotionId() != null
+                ?
+                promotionRepository
+                        .findById(prepaidRequest.getPromotionId())
+                        .orElseThrow(() -> new NoSuchElementException("No such promotion found"))
+                :
+                null;
+
+        PendingPrepaidBill pendingPrepaidBill = PendingPrepaidBill
+                .builder()
+                .time(new Timestamp(System.currentTimeMillis()))
+                .totalPrice(prepaidRequest.getTotalPrice())
+                .customer(userDetailsService.getCurrentUser())
+                .promotion(usedPromotion)
+                .build();
+
+        List<PendingPrepaidBillItem> pendingPrepaidBillItemList = new ArrayList<>();
+        billItemRequestList.forEach(billItemRequest -> {
+            PendingPrepaidBillItem pendingPrepaidBillItem = PendingPrepaidBillItem.builder()
+                    .pendingPrepaidBill(pendingPrepaidBill)
+                    .product(productRepository
+                            .findById(billItemRequest.getProductId())
+                            .orElseThrow(() -> new NoSuchElementException("No such product found"))
+                    )
+                    .price(billItemRequest.getPrice())
+                    .quantity(billItemRequest.getQuantity())
+                    .build();
+            pendingPrepaidBillItemList.add(pendingPrepaidBillItem);
+        });
+
+        pendingPrepaidBill.setPendingPrepaidBillItemList(pendingPrepaidBillItemList);
+        pendingPrepaidBillRepository.save(pendingPrepaidBill);
+
+        ResponseMessage responseMessage = new ResponseMessage("Đã đặt hàng và đang tìm shipper");
+        socketIOServer.getBroadcastOperations().sendEvent("pendingPrepaidBill", responseMessage);
+
+        return responseMessage;
+    }
+
+    @Override
+    public List<BillResponse> getAllPendingPrepaidBill() {
+        return pendingPrepaidBillRepository.findAll()
+                .stream()
+                .map(billMapper::mapPendingPrepaidBillToBillResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -176,7 +209,7 @@ public class BillServiceImpl implements BillService {
         Page<Bill> billList = billRepository.findAll(PageRequest.of(page - 1, 10));
         return billList
                 .stream()
-                .map(billMapper::toBillResponse)
+                .map(billMapper::mapBillToBillResponse)
                 .collect(Collectors.toList());
     }
 
@@ -212,45 +245,35 @@ public class BillServiceImpl implements BillService {
         }
         return billList
                 .stream()
-                .map(billMapper::toBillResponse)
+                .map(billMapper::mapBillToBillResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    @Cacheable(key = "#billId", value = "billDetailCache")
     public BillResponse getBillDetail(Integer billId) {
         Bill bill = billRepository
                 .findById(billId)
-                .orElseThrow(NoSuchElementException::new);
-        return toBillResponse(bill);
+                .orElseThrow(() -> new NoSuchElementException("No such bill found"));
+        return billMapper.mapBillToBillResponse(bill);
     }
 
-    private BillResponse toBillResponse(Bill bill) {
-        BillResponse billResponse = billMapper.toBillResponse(bill);
-        billResponse.setBillItemResponseList(
-                bill.getBillItemList().stream().map(billItem -> {
-                    Product product = billItem.getProduct();
-                    ProductResponse productResponse = productMapper.toProductResponse(product);
-                    productResponse.setImageLinks(product.getImageList()
-                            .stream()
-                            .map(Image::getLink)
-                            .collect(Collectors.toList()));
-                    return BillItemResponse.builder()
-                            .quantity(billItem.getQuantity())
-                            .price(billItem.getPrice())
-                            .product(productResponse)
-                            .build();
-                }).collect(Collectors.toList())
-        );
+    private Bill saveBillByBillItemRequestList(Bill bill, List<BillItemRequest> billItemRequestList) {
+        List<BillItem> billItemList = new ArrayList<>();
+        billItemRequestList.forEach(billItemRequest -> {
+            BillItem billItem = BillItem
+                    .builder()
+                    .product(productRepository
+                            .findById(billItemRequest.getProductId())
+                            .orElseThrow(() -> new NoSuchElementException("No such product found"))
+                    )
+                    .price(billItemRequest.getPrice())
+                    .quantity(billItemRequest.getQuantity())
+                    .bill(bill)
+                    .build();
+            billItemList.add(billItem);
+        });
 
-        if (bill.getPromotion() != null)
-            billResponse.setUsedPromotionResponse(promotionMappper.toPromotionResponse(bill.getPromotion()));
-
-        if (bill.getCustomer() != null) {
-            UserResponse userResponse = userMapper.toUserResponse(bill.getCustomer());
-            billResponse.setUserResponse(userResponse);
-        }
-        return billResponse;
+        bill.setBillItemList(billItemList);
+        return billRepository.save(bill);
     }
-
 }

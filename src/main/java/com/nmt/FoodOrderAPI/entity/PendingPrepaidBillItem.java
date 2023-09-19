@@ -1,5 +1,6 @@
 package com.nmt.FoodOrderAPI.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -8,10 +9,10 @@ import javax.validation.constraints.Min;
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class BillItem {
+public class PendingPrepaidBillItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Id")
@@ -29,7 +30,9 @@ public class BillItem {
     @JoinColumn(name = "ProductId")
     private Product product;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "BillId")
-    private Bill bill;
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "PendingPrepaidBillId")
+    private PendingPrepaidBill pendingPrepaidBill;
+
 }

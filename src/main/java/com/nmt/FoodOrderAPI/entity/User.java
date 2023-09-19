@@ -51,7 +51,16 @@ public class User {
     private List<Bill> billList;
 
     @OneToMany(mappedBy = "staff")
-    private List<Bill> staffBillList;
+    private List<Bill> billStaffList;
+
+    @OneToMany(mappedBy = "shipper")
+    private List<Bill> billShipperList;
+
+    @OneToMany(mappedBy = "staff")
+    private List<StaffTracking> staffTrackingList;
+
+    @OneToMany(mappedBy = "customer")
+    private List<PendingPrepaidBill> customerPendingPrepaidBillList;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

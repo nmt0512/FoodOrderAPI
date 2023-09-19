@@ -11,21 +11,53 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.security.Key;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 @Component
 public class JwtUtils implements Serializable {
     @Value("${jwt.secret}")
     private String jwtSecret;
-    @Value("${jwt.expirationMs}")
-    private Integer jwtExpirationMs;
+
+//    @Value("${jwt.expirationMs}")
+//    private Integer jwtExpirationMs;
 
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
                 .setSubject((userDetails.getUsername()))
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .setIssuedAt(new Date())
+                .setExpiration(
+                        Date.from(LocalDateTime
+                                .now()
+                                .atZone(ZoneId.systemDefault())
+                                .plusDays(1)
+                                .toInstant()
+                        )
+                )
+                .signWith(key(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String generateToken(UserDetails userDetails, int trackingId) {
+        Map<String, Integer> trackingIdMap = new HashMap<>();
+        trackingIdMap.put("trackingId", trackingId);
+
+        return Jwts.builder()
+                .setClaims(trackingIdMap)
+                .setSubject((userDetails.getUsername()))
+                .setIssuedAt(new Date())
+                .setExpiration(
+                        Date.from(LocalDateTime
+                                .now()
+                                .atZone(ZoneId.systemDefault())
+                                .plusDays(1)
+                                .toInstant()
+                        )
+                )
                 .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -34,11 +66,15 @@ public class JwtUtils implements Serializable {
         return extractClaim(token, Claims::getSubject);
     }
 
+    public Integer getTokenStaffTrackingId(String token) {
+        return extractClaim(token, claims -> (Integer) claims.get("trackingId"));
+    }
+
     private Key key() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 
-    private  <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }

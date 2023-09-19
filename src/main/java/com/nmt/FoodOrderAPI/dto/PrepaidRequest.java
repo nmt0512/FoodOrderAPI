@@ -14,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PrepaidRequest implements Serializable {
+
     @JsonProperty("billItemList")
     private List<BillItemRequest> billItemRequestList;
 

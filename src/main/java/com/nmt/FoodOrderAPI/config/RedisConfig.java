@@ -33,15 +33,12 @@ public class RedisConfig {
 
     @Bean
     public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
-        return builder -> builder
-                .withCacheConfiguration(
-                        "bannerCache",
-                        RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(30))
-                )
-                .withCacheConfiguration(
-                        "billDetailCache",
-                        RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10))
-                );
+        return builder -> builder.withCacheConfiguration(
+                "bannerCache",
+                RedisCacheConfiguration
+                        .defaultCacheConfig()
+                        .entryTtl(Duration.ofMinutes(30))
+        );
     }
 
     @Bean
@@ -56,8 +53,8 @@ public class RedisConfig {
         return template;
     }
 
-    @Scheduled(cron = "0 */15 * ? * *")
-    @CacheEvict(value = {"bannerCache", "billDetailCache"}, allEntries = true)
+    @Scheduled(cron = "0 */30 * ? * *")
+    @CacheEvict(value = "bannerCache", allEntries = true)
     private void clearAllCache() {
         log.info("Cleared all cache in Redis");
     }

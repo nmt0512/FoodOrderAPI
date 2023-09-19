@@ -1,7 +1,6 @@
 package com.nmt.FoodOrderAPI.controller;
 
 import com.nmt.FoodOrderAPI.dto.*;
-import com.nmt.FoodOrderAPI.enums.BillStatusCode;
 import com.nmt.FoodOrderAPI.response.ResponseData;
 import com.nmt.FoodOrderAPI.response.ResponseUtils;
 import com.nmt.FoodOrderAPI.service.BillService;
@@ -10,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/bill")
@@ -24,16 +22,26 @@ public class BillController {
     }
 
     @PostMapping("/status")
-    public ResponseEntity<ResponseMessage> confirmBill(@RequestBody BillRequest billRequest) {
-        billService.changeBillStatus(billRequest);
-        if (Objects.equals(billRequest.getStatus(), BillStatusCode.CANCELLED.getCode()))
-            return ResponseEntity.ok(new ResponseMessage("Đã hủy!"));
-        return ResponseEntity.ok(new ResponseMessage("Thành công!"));
+    public ResponseEntity<ResponseMessage> confirmOrCancelBill(
+            @RequestBody BillRequest billRequest,
+            @RequestHeader(name = "Authorization", required = false) String token
+    ) {
+        return ResponseEntity.ok(billService.confirmOrCancelBill(token, billRequest));
     }
 
     @PostMapping("/prepaid")
     public ResponseEntity<ResponseMessage> prepaidBill(@RequestBody PrepaidRequest prepaidRequest) {
         return ResponseEntity.ok(billService.prepaidBill(prepaidRequest));
+    }
+
+    @PostMapping("/pending-prepaid")
+    public ResponseEntity<ResponseMessage> orderPendingPrepaidBill(@RequestBody PrepaidRequest prepaidRequest) {
+        return ResponseEntity.ok(billService.orderPendingPrepaidBill(prepaidRequest));
+    }
+
+    @GetMapping("/pending-prepaid/all")
+    public ResponseEntity<ResponseData<List<BillResponse>>> getAllPendingPrepaidBill() {
+        return ResponseUtils.success(billService.getAllPendingPrepaidBill());
     }
 
     @GetMapping("/all")
@@ -47,11 +55,6 @@ public class BillController {
         else
             return ResponseUtils.success(billService.getBillByFilter(page, status, orderBy));
     }
-
-//    @GetMapping(value = "/all", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-//    public Flux<BillResponse> getAllBillFlux() {
-//        return billService.getAllBillFlux();
-//    }
 
     @GetMapping("/detail/{id}")
     public ResponseEntity<ResponseData<BillResponse>> getBillDetail(@PathVariable("id") Integer billId) {

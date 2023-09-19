@@ -1,6 +1,8 @@
 package com.nmt.FoodOrderAPI.controller.exception;
 
 import com.nmt.FoodOrderAPI.exception.OldPasswordNotMatchException;
+import com.nmt.FoodOrderAPI.exception.PendingPrepaidUpdateException;
+import com.nmt.FoodOrderAPI.exception.SendingLogoutErrorException;
 import com.nmt.FoodOrderAPI.response.ResponseData;
 import com.nmt.FoodOrderAPI.response.ResponseUtils;
 import org.springframework.http.HttpStatus;
@@ -25,7 +27,7 @@ public class ExceptionHandlerController {
 
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ResponseData<Void>> handleNoSuchElementException(NoSuchElementException noSuchElementException) {
-        return ResponseUtils.error(400, "No such element found", HttpStatus.BAD_REQUEST);
+        return ResponseUtils.error(400, noSuchElementException.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(OldPasswordNotMatchException.class)
@@ -60,7 +62,7 @@ public class ExceptionHandlerController {
             return ResponseUtils.error(400, "Username already exists", HttpStatus.BAD_REQUEST);
         else {
             sqlException.printStackTrace();
-            return null;
+            return ResponseUtils.error(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -75,6 +77,28 @@ public class ExceptionHandlerController {
                 400,
                 error,
                 HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(SendingLogoutErrorException.class)
+    public ResponseEntity<ResponseData<Void>> handleSendingLogoutErrorException(
+            SendingLogoutErrorException sendingLogoutErrorException
+    ) {
+        return ResponseUtils.error(
+                400,
+                sendingLogoutErrorException.getMessage(),
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(PendingPrepaidUpdateException.class)
+    public ResponseEntity<ResponseData<Void>> handlePendingPrepaidUpdateException(
+            PendingPrepaidUpdateException pendingPrepaidUpdateException
+    ) {
+        return ResponseUtils.error(
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                pendingPrepaidUpdateException.getMessage(),
+                HttpStatus.UNPROCESSABLE_ENTITY
         );
     }
 

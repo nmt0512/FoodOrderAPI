@@ -4,7 +4,9 @@ import com.nmt.FoodOrderAPI.config.security.UserDetailsServiceImpl;
 import com.nmt.FoodOrderAPI.config.utils.JwtUtils;
 import com.nmt.FoodOrderAPI.dto.LoginRequest;
 import com.nmt.FoodOrderAPI.dto.LoginResponse;
+import com.nmt.FoodOrderAPI.entity.StaffTracking;
 import com.nmt.FoodOrderAPI.enums.UserRolesCode;
+import com.nmt.FoodOrderAPI.repo.StaffTrackingRepository;
 import com.nmt.FoodOrderAPI.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +22,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
     private final UserDetailsServiceImpl userDetailsService;
+    private final StaffTrackingRepository staffTrackingRepository;
 
     @Override
     public LoginResponse authenticateAndGenerateToken(LoginRequest loginRequest) {
@@ -27,6 +30,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
         Authentication auth = authenticationManager.authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(auth);
+
         UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getUsername());
         int roleCode = userDetails
                 .getAuthorities()
@@ -39,6 +43,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                         .getCode())
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Invalid user role"));
-        return new LoginResponse(jwtUtils.generateToken(userDetails), roleCode);
+        String token = jwtUtils.generateToken(userDetails);
+
+        if (roleCode == UserRolesCode.STAFF.getCode()) {
+            StaffTracking staffTracking = staffTrackingRepository.save(new StaffTracking());
+            token = jwtUtils.generateToken(userDetails, staffTracking.getId());
+        }
+
+        return new LoginResponse(token, roleCode);
     }
 }

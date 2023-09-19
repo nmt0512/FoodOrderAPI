@@ -10,12 +10,15 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
-public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
+public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
             throws IOException {
-        SecurityResponseUtils.sendResponse(response, ResponseStatusCode.UNAUTHORIZED,
-                "You are not authorized to access this resource");
+        SecurityResponseUtils.sendResponse(
+                response,
+                ResponseStatusCode.UNAUTHORIZED,
+                "You are not authenticated to access this resource"
+        );
     }
 }

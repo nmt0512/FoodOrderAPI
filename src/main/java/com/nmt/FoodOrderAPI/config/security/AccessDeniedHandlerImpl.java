@@ -10,11 +10,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
-public class CustomAccessDeniedHandler implements AccessDeniedHandler {
+public class AccessDeniedHandlerImpl implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException)
             throws IOException {
-        SecurityResponseUtils.sendResponse(response, ResponseStatusCode.FORBIDDEN,
-                "You are not authorized to access this resource");
+        SecurityResponseUtils.sendResponse(
+                response,
+                ResponseStatusCode.FORBIDDEN,
+                "You are not authorized to access this resource"
+        );
     }
 }

@@ -15,11 +15,6 @@ VALUES('mi-tron-indome-1-goi-full-topping', N'Mì trộn indome 1 gói full topi
 INSERT INTO Product(Code, Name, Quantity, UnitPrice, CategoryId) 
 VALUES('capuchino', 'Capuchino', 15, 55000, 2)
 
-SELECT * FROM DBUser
-
-INSERT INTO DBUser(Username, Password, Fullname, Role, Email, Gender) VALUES('admin123', 
-'$2a$10$LaTgZ9vvO1Fg2x4lGxKyIOd/yCxu19e1wxdmuaRkSxYxfjCstL09G', 'admin', 1, 'admin1@gmail.com', 0)
-
 SELECT * FROM Product
 
 UPDATE Product SET Quantity = 3000 WHERE Id = 3
@@ -32,7 +27,7 @@ INSERT INTO Image(Link, ProductId) VALUES('https://bonjourcoffee.vn/blog/wp-cont
 
 SELECT * FROM BillItem
 
-SELECT * FROM Bill
+SELECT * FROM Bill WHERE Time = (SELECT MIN(Time) FROM Bill)
 
 DELETE FROM Bill WHERE Id = 10
 
@@ -54,8 +49,8 @@ SELECT * FROM Promotion WHERE ApplyingPrice < 300000
 
 SELECT * FROM DBUser
 
-INSERT INTO DBUser(Username, Password, Fullname, Role, Email, Gender) VALUES('admin@gmail.com', 
-'$2a$12$VHBb4mLxAXKlHOkK6TT9guU0MgD47eoWG8JTMMRQm6S1WArh6LHoG', 'Admin', 1, 'admin@gmail.com', 0)
+INSERT INTO DBUser(Username, Password, Fullname, Role, Email, Gender) VALUES('shipper5', 
+'$2a$12$VHBb4mLxAXKlHOkK6TT9guU0MgD47eoWG8JTMMRQm6S1WArh6LHoG', 'Shipper5', 2, 'shipper5@gmail.com', 0)
 
 ALTER TABLE DBUser
 ALTER COLUMN Gender bit null
@@ -116,4 +111,31 @@ INSERT INTO DBUserPromotion VALUES(15, 3)
 UPDATE Bill SET Status = 3 WHERE Id = 195
 
 UPDATE Bill SET StaffId = (SELECT Id FROM DBUser WHERE Bill.StaffName = DBUser.Fullname)
+
+SELECT * FROM StaffTracking
+
+DELETE FROM StaffTracking
+
+DROP TABLE StaffTracking
+
+SELECT MONTH(Time) AS Time, SUM(TotalPrice) AS Revenue 
+FROM Bill WHERE Status = 2 AND YEAR(Time) = 2023
+GROUP BY MONTH(Time)
+
+SELECT st.StaffId AS Id, u.Fullname, SUM(st.Revenue) AS TotalRevenue, SUM(st.WorkingDuration) AS TotalDuration 
+FROM DBUser u JOIN StaffTracking st ON u.Id = st.StaffId 
+WHERE FORMAT(st.LoginTime, 'MM/yyyy') = '09/2023' 
+GROUP BY st.StaffId, u.Fullname
+
+UPDATE Product SET Quantity = 1000 WHERE Id = 2
+
+DELETE FROM StaffTracking
+
+SELECT * FROM PendingPrepaidBill
+
+SELECT * FROM PendingPrepaidBillItem
+
+DELETE FROM PendingPrepaidBill WHERE Id = 1
+
+DELETE FROM PendingPrepaidBillItem
 
