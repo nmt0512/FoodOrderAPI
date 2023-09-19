@@ -61,12 +61,12 @@ public class Product {
     @Min(0)
     private Integer unitPrice;
 
-    @OneToMany(mappedBy = "product")
-    private List<Image> imageList;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CategoryId")
     private Category category;
+
+    @OneToMany(mappedBy = "product")
+    private List<Image> imageList;
 
     @OneToMany(mappedBy = "product")
     private List<BillItem> billItemList;
