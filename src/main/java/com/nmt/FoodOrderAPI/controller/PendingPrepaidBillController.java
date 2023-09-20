@@ -20,7 +20,7 @@ public class PendingPrepaidBillController {
 
     @PostMapping
     public ResponseEntity<ResponseMessage> orderPendingPrepaidBill(@RequestBody PrepaidRequest prepaidRequest) {
-        return ResponseEntity.ok(pendingPrepaidBillService.orderPendingPrepaidBill(prepaidRequest));
+        return ResponseEntity.ok(pendingPrepaidBillService.createPendingPrepaidBill(prepaidRequest));
     }
 
     @GetMapping("/all")

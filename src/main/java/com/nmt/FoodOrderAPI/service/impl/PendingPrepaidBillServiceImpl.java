@@ -37,7 +37,7 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
 
     @Override
     @Transactional
-    public ResponseMessage orderPendingPrepaidBill(PrepaidRequest prepaidRequest) {
+    public ResponseMessage createPendingPrepaidBill(PrepaidRequest prepaidRequest) {
         List<BillItemRequest> billItemRequestList = prepaidRequest.getBillItemRequestList();
 
         Promotion usedPromotion = prepaidRequest.getPromotionId() != null
