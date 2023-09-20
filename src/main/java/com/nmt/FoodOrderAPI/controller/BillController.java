@@ -34,16 +34,6 @@ public class BillController {
         return ResponseEntity.ok(billService.prepaidBill(prepaidRequest));
     }
 
-    @PostMapping("/pending-prepaid")
-    public ResponseEntity<ResponseMessage> orderPendingPrepaidBill(@RequestBody PrepaidRequest prepaidRequest) {
-        return ResponseEntity.ok(billService.orderPendingPrepaidBill(prepaidRequest));
-    }
-
-    @GetMapping("/pending-prepaid/all")
-    public ResponseEntity<ResponseData<List<BillResponse>>> getAllPendingPrepaidBill() {
-        return ResponseUtils.success(billService.getAllPendingPrepaidBill());
-    }
-
     @GetMapping("/all")
     public ResponseEntity<ResponseData<List<BillResponse>>> getAllBillOrByFilter(
             @RequestParam(name = "page") Integer page,

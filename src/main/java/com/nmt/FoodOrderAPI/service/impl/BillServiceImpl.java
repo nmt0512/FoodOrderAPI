@@ -8,7 +8,10 @@ import com.nmt.FoodOrderAPI.entity.*;
 import com.nmt.FoodOrderAPI.enums.BillStatusCode;
 import com.nmt.FoodOrderAPI.mapper.BillMapper;
 import com.nmt.FoodOrderAPI.mapper.PromotionMappper;
-import com.nmt.FoodOrderAPI.repo.*;
+import com.nmt.FoodOrderAPI.repo.BillRepository;
+import com.nmt.FoodOrderAPI.repo.ProductRepository;
+import com.nmt.FoodOrderAPI.repo.PromotionRepository;
+import com.nmt.FoodOrderAPI.repo.StaffTrackingRepository;
 import com.nmt.FoodOrderAPI.service.BillService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +37,6 @@ public class BillServiceImpl implements BillService {
     private final PromotionRepository promotionRepository;
     private final ProductRepository productRepository;
     private final StaffTrackingRepository staffTrackingRepository;
-    private final PendingPrepaidBillRepository pendingPrepaidBillRepository;
     private final UserDetailsServiceImpl userDetailsService;
     private final BillMapper billMapper;
     private final PromotionMappper promotionMappper;
@@ -150,58 +152,6 @@ public class BillServiceImpl implements BillService {
         socketIOServer.getBroadcastOperations().sendEvent("prepaidBill", responseMessage);
 
         return responseMessage;
-    }
-
-    @Override
-    @Transactional
-    public ResponseMessage orderPendingPrepaidBill(PrepaidRequest prepaidRequest) {
-        List<BillItemRequest> billItemRequestList = prepaidRequest.getBillItemRequestList();
-
-        Promotion usedPromotion = prepaidRequest.getPromotionId() != null
-                ?
-                promotionRepository
-                        .findById(prepaidRequest.getPromotionId())
-                        .orElseThrow(() -> new NoSuchElementException("No such promotion found"))
-                :
-                null;
-
-        PendingPrepaidBill pendingPrepaidBill = PendingPrepaidBill
-                .builder()
-                .time(new Timestamp(System.currentTimeMillis()))
-                .totalPrice(prepaidRequest.getTotalPrice())
-                .customer(userDetailsService.getCurrentUser())
-                .promotion(usedPromotion)
-                .build();
-
-        List<PendingPrepaidBillItem> pendingPrepaidBillItemList = new ArrayList<>();
-        billItemRequestList.forEach(billItemRequest -> {
-            PendingPrepaidBillItem pendingPrepaidBillItem = PendingPrepaidBillItem.builder()
-                    .pendingPrepaidBill(pendingPrepaidBill)
-                    .product(productRepository
-                            .findById(billItemRequest.getProductId())
-                            .orElseThrow(() -> new NoSuchElementException("No such product found"))
-                    )
-                    .price(billItemRequest.getPrice())
-                    .quantity(billItemRequest.getQuantity())
-                    .build();
-            pendingPrepaidBillItemList.add(pendingPrepaidBillItem);
-        });
-
-        pendingPrepaidBill.setPendingPrepaidBillItemList(pendingPrepaidBillItemList);
-        pendingPrepaidBillRepository.save(pendingPrepaidBill);
-
-        ResponseMessage responseMessage = new ResponseMessage("Đã đặt hàng và đang tìm shipper");
-        socketIOServer.getBroadcastOperations().sendEvent("pendingPrepaidBill", responseMessage);
-
-        return responseMessage;
-    }
-
-    @Override
-    public List<BillResponse> getAllPendingPrepaidBill() {
-        return pendingPrepaidBillRepository.findAll()
-                .stream()
-                .map(billMapper::mapPendingPrepaidBillToBillResponse)
-                .collect(Collectors.toList());
     }
 
     @Override

@@ -1,9 +1,7 @@
 package com.nmt.FoodOrderAPI.mapper;
 
 import com.nmt.FoodOrderAPI.dto.BillResponse;
-import com.nmt.FoodOrderAPI.entity.Bill;
-import com.nmt.FoodOrderAPI.entity.Image;
-import com.nmt.FoodOrderAPI.entity.PendingPrepaidBill;
+import com.nmt.FoodOrderAPI.entity.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
@@ -28,6 +26,14 @@ public interface BillMapper {
     @Mapping(target = "usedPromotionResponse", source = "promotion")
     @Mapping(target = "billItemResponseList", source = "pendingPrepaidBillItemList")
     BillResponse mapPendingPrepaidBillToBillResponse(PendingPrepaidBill pendingPrepaidBill);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "billItemList", ignore = true)
+    Bill mapPendingPrepaidBillToBill(PendingPrepaidBill pendingPrepaidBill);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "bill", ignore = true)
+    BillItem mapPendingPrepaidBillItemToBillItem(PendingPrepaidBillItem pendingPrepaidBillItem);
 
     default List<String> toImageLinks(List<Image> imageList) {
         return imageList.stream()

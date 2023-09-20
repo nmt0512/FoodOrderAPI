@@ -38,7 +38,10 @@ public class PendingPrepaidBill {
     @JoinColumn(name = "PromotionId")
     private Promotion promotion;
 
-    @OneToMany(mappedBy = "pendingPrepaidBill", cascade = CascadeType.ALL)
+    @OneToMany(
+            mappedBy = "pendingPrepaidBill",
+            cascade = {CascadeType.PERSIST, CascadeType.REMOVE}
+    )
     private List<PendingPrepaidBillItem> pendingPrepaidBillItemList;
 
     @PrePersist

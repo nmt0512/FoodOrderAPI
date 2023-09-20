@@ -11,10 +11,6 @@ public interface BillService {
 
     ResponseMessage prepaidBill(PrepaidRequest prepaidRequest);
 
-    ResponseMessage orderPendingPrepaidBill(PrepaidRequest prepaidRequest);
-
-    List<BillResponse> getAllPendingPrepaidBill();
-
     BillResponse getBillDetail(Integer billId);
 
     List<BillResponse> getAllBill(Integer page);

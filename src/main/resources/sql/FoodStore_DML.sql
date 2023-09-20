@@ -139,3 +139,21 @@ DELETE FROM PendingPrepaidBill WHERE Id = 1
 
 DELETE FROM PendingPrepaidBillItem
 
+CREATE TRIGGER Trigger_UpdateTrueOnlyOneTime_Received 
+ON PendingPrepaidBill 
+FOR UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1 
+		FROM deleted 
+		WHERE Received = 1
+    )
+    BEGIN
+        RAISERROR('Cannot update when "Received" is true', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END;
+END;
+
+UPDATE PendingPrepaidBill SET Received = 1 WHERE Id = 6

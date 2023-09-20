@@ -31,7 +31,10 @@ public class PendingPrepaidBillItem {
     private Product product;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(
+            fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.REMOVE}
+    )
     @JoinColumn(name = "PendingPrepaidBillId")
     private PendingPrepaidBill pendingPrepaidBill;
 
