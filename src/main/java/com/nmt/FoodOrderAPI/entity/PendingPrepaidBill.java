@@ -1,6 +1,5 @@
 package com.nmt.FoodOrderAPI.entity;
 
-import com.nmt.FoodOrderAPI.exception.PendingPrepaidUpdateException;
 import lombok.*;
 
 import javax.persistence.*;
@@ -31,8 +30,9 @@ public class PendingPrepaidBill {
     @JoinColumn(name = "CustomerId")
     private User customer;
 
-    @Column(name = "Received", columnDefinition = "bit DEFAULT 0")
-    private Boolean received;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ShipperId")
+    private User shipper;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PromotionId")
@@ -44,15 +44,4 @@ public class PendingPrepaidBill {
     )
     private List<PendingPrepaidBillItem> pendingPrepaidBillItemList;
 
-    @PrePersist
-    public void prePersist() {
-        if (received == null)
-            received = false;
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        if (received)
-            throw new PendingPrepaidUpdateException("Bill was received by a shipper and update failed");
-    }
 }

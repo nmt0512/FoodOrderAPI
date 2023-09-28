@@ -9,10 +9,7 @@ import com.nmt.FoodOrderAPI.service.AuthenticationService;
 import com.nmt.FoodOrderAPI.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -29,8 +26,11 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ResponseData<LoginResponse>> registerUser(@RequestBody @Valid UserRequest userRequest) {
-        userService.addUser(userRequest);
+    public ResponseEntity<ResponseData<LoginResponse>> registerUser(
+            @RequestBody @Valid UserRequest userRequest,
+            @RequestParam(name = "shipper", required = false, defaultValue = "false") boolean isShipper
+    ) {
+        userService.addUser(userRequest, isShipper);
         return loginAndCreateJsonWebToken(new LoginRequest(userRequest.getUsername(), userRequest.getPassword()));
     }
 

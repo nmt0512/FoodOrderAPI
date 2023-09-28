@@ -49,7 +49,7 @@ public class SecurityConfiguration {
                 .authorizeRequests()
                 .antMatchers(
                         "/api/auth/login",
-                        "/api/auth/register"
+                        "/api/auth/register/**"
                 )
                 .permitAll()
                 .antMatchers(
@@ -64,13 +64,15 @@ public class SecurityConfiguration {
                 .hasRole("STAFF")
                 .antMatchers(
                         "/api/bill/prepaid",
-                        "/api/bill/pending-prepaid",
+                        "/api/pending-prepaid",
+                        "/api/pending-prepaid/payment/**",
                         "/api/promotion"
                 )
                 .hasRole("CUSTOMER")
                 .antMatchers(
-                        "/api/bill/pending-prepaid/all",
-                        "/api/bill/pending-prepaid/receive"
+                        "/api/pending-prepaid/receive/**",
+                        "/api/pending-prepaid/received",
+                        "/api/pending-prepaid/all"
                 )
                 .hasRole("SHIPPER")
                 .anyRequest()

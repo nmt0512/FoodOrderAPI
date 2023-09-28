@@ -4,8 +4,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-public class PendingPrepaidUpdateException extends RuntimeException {
-    public PendingPrepaidUpdateException(String message) {
+public class ReceivePendingPrepaidException extends RuntimeException {
+    public ReceivePendingPrepaidException(String message) {
         super(message);
     }
 }

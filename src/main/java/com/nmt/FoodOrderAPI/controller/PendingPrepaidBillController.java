@@ -19,7 +19,7 @@ public class PendingPrepaidBillController {
     private final PendingPrepaidBillService pendingPrepaidBillService;
 
     @PostMapping
-    public ResponseEntity<ResponseMessage> orderPendingPrepaidBill(@RequestBody PrepaidRequest prepaidRequest) {
+    public ResponseEntity<BillResponse> orderPendingPrepaidBill(@RequestBody PrepaidRequest prepaidRequest) {
         return ResponseEntity.ok(pendingPrepaidBillService.createPendingPrepaidBill(prepaidRequest));
     }
 
@@ -28,7 +28,17 @@ public class PendingPrepaidBillController {
         return ResponseUtils.success(pendingPrepaidBillService.getAllPendingPrepaidBill());
     }
 
-    @PutMapping("/{id}")
+    @GetMapping("/received")
+    public ResponseEntity<ResponseData<List<BillResponse>>> getAllReceivedPendingPrepaidBillByShipper() {
+        return ResponseUtils.success(pendingPrepaidBillService.getAllReceivedPendingPrepaidBillByShipper());
+    }
+
+    @PostMapping("/payment/{id}")
+    public ResponseEntity<ResponseMessage> paymentPendingPrepaidBillByCustomer(@PathVariable("id") Integer pendingPrepaidBillId) {
+        return ResponseEntity.ok(pendingPrepaidBillService.paymentPendingPrepaidBillByCustomer(pendingPrepaidBillId));
+    }
+
+    @PutMapping("/receive/{id}")
     public ResponseEntity<ResponseMessage> confirmReceivedPendingPrepaidBill(@PathVariable("id") Integer pendingPrepaidBillId) {
         return ResponseEntity.ok(pendingPrepaidBillService.confirmReceivedPendingPrepaidBill(pendingPrepaidBillId));
     }

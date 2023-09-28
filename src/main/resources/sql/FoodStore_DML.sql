@@ -49,8 +49,12 @@ SELECT * FROM Promotion WHERE ApplyingPrice < 300000
 
 SELECT * FROM DBUser
 
+UPDATE DBUser SET Phone = '0362764805' WHERE Id = 23
+
 INSERT INTO DBUser(Username, Password, Fullname, Role, Email, Gender) VALUES('shipper5', 
 '$2a$12$VHBb4mLxAXKlHOkK6TT9guU0MgD47eoWG8JTMMRQm6S1WArh6LHoG', 'Shipper5', 2, 'shipper5@gmail.com', 0)
+
+
 
 ALTER TABLE DBUser
 ALTER COLUMN Gender bit null
@@ -114,6 +118,11 @@ UPDATE Bill SET StaffId = (SELECT Id FROM DBUser WHERE Bill.StaffName = DBUser.F
 
 SELECT * FROM StaffTracking
 
+UPDATE StaffTracking SET Revenue = 210000 WHERE StaffId IN (26, 27)
+
+SELECT DISTINCT(FORMAT(LoginTime, 'MM/yyyy')) AS Time 
+FROM StaffTracking
+
 DELETE FROM StaffTracking
 
 DROP TABLE StaffTracking
@@ -139,7 +148,7 @@ DELETE FROM PendingPrepaidBill WHERE Id = 1
 
 DELETE FROM PendingPrepaidBillItem
 
-CREATE TRIGGER Trigger_UpdateTrueOnlyOneTime_Received 
+CREATE TRIGGER Trigger_UpdateOnlyOneTime_Shipper 
 ON PendingPrepaidBill 
 FOR UPDATE
 AS
@@ -147,13 +156,13 @@ BEGIN
     IF EXISTS (
         SELECT 1 
 		FROM deleted 
-		WHERE Received = 1
+		WHERE ShipperId != NULL
     )
     BEGIN
-        RAISERROR('Cannot update when "Received" is true', 16, 1);
+        RAISERROR('Cannot update when "Shipper" is not null', 16, 1);
         ROLLBACK TRANSACTION;
         RETURN;
     END;
 END;
 
-UPDATE PendingPrepaidBill SET Received = 1 WHERE Id = 6
+

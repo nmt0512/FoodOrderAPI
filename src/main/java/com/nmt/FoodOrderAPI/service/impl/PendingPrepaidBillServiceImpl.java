@@ -2,12 +2,10 @@ package com.nmt.FoodOrderAPI.service.impl;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import com.nmt.FoodOrderAPI.config.security.UserDetailsServiceImpl;
-import com.nmt.FoodOrderAPI.dto.BillItemRequest;
-import com.nmt.FoodOrderAPI.dto.BillResponse;
-import com.nmt.FoodOrderAPI.dto.PrepaidRequest;
-import com.nmt.FoodOrderAPI.dto.ResponseMessage;
+import com.nmt.FoodOrderAPI.dto.*;
 import com.nmt.FoodOrderAPI.entity.*;
 import com.nmt.FoodOrderAPI.enums.BillStatusCode;
+import com.nmt.FoodOrderAPI.exception.ReceivePendingPrepaidException;
 import com.nmt.FoodOrderAPI.mapper.BillMapper;
 import com.nmt.FoodOrderAPI.repo.BillRepository;
 import com.nmt.FoodOrderAPI.repo.PendingPrepaidBillRepository;
@@ -15,29 +13,37 @@ import com.nmt.FoodOrderAPI.repo.ProductRepository;
 import com.nmt.FoodOrderAPI.repo.PromotionRepository;
 import com.nmt.FoodOrderAPI.service.PendingPrepaidBillService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService {
     private final PendingPrepaidBillRepository pendingPrepaidBillRepository;
+    private final BillRepository billRepository;
     private final PromotionRepository promotionRepository;
     private final ProductRepository productRepository;
-    private final BillRepository billRepository;
     private final SocketIOServer socketIOServer;
     private final UserDetailsServiceImpl userDetailsService;
+    private final ScheduledExecutorService scheduledExecutorService;
     private final BillMapper billMapper;
+    private final Map<Integer, ScheduledFuture<?>> scheduledFutureMap;
 
     @Override
     @Transactional
-    public ResponseMessage createPendingPrepaidBill(PrepaidRequest prepaidRequest) {
+    public BillResponse createPendingPrepaidBill(PrepaidRequest prepaidRequest) {
         List<BillItemRequest> billItemRequestList = prepaidRequest.getBillItemRequestList();
 
         Promotion usedPromotion = prepaidRequest.getPromotionId() != null
@@ -48,16 +54,18 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
                 :
                 null;
 
+        User customer = userDetailsService.getCurrentUser();
+
         PendingPrepaidBill pendingPrepaidBill = PendingPrepaidBill
                 .builder()
                 .time(new Timestamp(System.currentTimeMillis()))
                 .totalPrice(prepaidRequest.getTotalPrice())
-                .customer(userDetailsService.getCurrentUser())
+                .customer(customer)
                 .promotion(usedPromotion)
                 .build();
 
         List<PendingPrepaidBillItem> pendingPrepaidBillItemList = new ArrayList<>();
-        billItemRequestList.forEach(billItemRequest -> {
+        for (BillItemRequest billItemRequest : billItemRequestList) {
             PendingPrepaidBillItem pendingPrepaidBillItem = PendingPrepaidBillItem.builder()
                     .pendingPrepaidBill(pendingPrepaidBill)
                     .product(productRepository
@@ -68,23 +76,17 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
                     .quantity(billItemRequest.getQuantity())
                     .build();
             pendingPrepaidBillItemList.add(pendingPrepaidBillItem);
-        });
+        }
 
         pendingPrepaidBill.setPendingPrepaidBillItemList(pendingPrepaidBillItemList);
-        pendingPrepaidBillRepository.save(pendingPrepaidBill);
+        pendingPrepaidBill = pendingPrepaidBillRepository.save(pendingPrepaidBill);
 
-        ResponseMessage responseMessage = new ResponseMessage("Đã đặt hàng và đang tìm shipper");
-        socketIOServer.getBroadcastOperations().sendEvent("pendingPrepaidBill", responseMessage);
+        BillResponse billResponse = billMapper.mapPendingPrepaidBillToBillResponse(pendingPrepaidBill);
 
-        return responseMessage;
-    }
+        schedulePendingPrepaidBillTimeout(pendingPrepaidBill.getId(), 3, customer.getId(), false);
+        socketIOServer.getBroadcastOperations().sendEvent("pendingPrepaidBill", 1);
 
-    @Override
-    public List<BillResponse> getAllPendingPrepaidBill() {
-        return pendingPrepaidBillRepository.findAll()
-                .stream()
-                .map(billMapper::mapPendingPrepaidBillToBillResponse)
-                .collect(Collectors.toList());
+        return billResponse;
     }
 
     @Override
@@ -93,24 +95,36 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
         PendingPrepaidBill pendingPrepaidBill = pendingPrepaidBillRepository
                 .findById(pendingPrepaidBillId)
                 .orElseThrow(() -> new NoSuchElementException("No pending prepaid bill found"));
-        pendingPrepaidBill.setReceived(true);
 
-        saveBillByPendingPrepaidBill(pendingPrepaidBillRepository.saveAndFlush(pendingPrepaidBill));
+        if (pendingPrepaidBill.getShipper() != null)
+            throw new ReceivePendingPrepaidException("Bill was received by a shipper and update failed");
 
-        pendingPrepaidBillRepository.deleteById(pendingPrepaidBillId);
-        pendingPrepaidBillRepository.flush();
+        User shipper = userDetailsService.getCurrentUser();
+        pendingPrepaidBill.setShipper(shipper);
+        pendingPrepaidBillRepository.save(pendingPrepaidBill);
 
-        ResponseMessage responseMessage = new ResponseMessage("Shipper đã nhận đơn hàng");
-        socketIOServer.getBroadcastOperations().sendEvent("shipperReceivedBill", responseMessage);
+        ScheduledFuture<?> scheduledFuture = scheduledFutureMap.get(pendingPrepaidBillId);
+        if (scheduledFuture != null && !scheduledFuture.isDone())
+            scheduledFuture.cancel(false);
 
-        return responseMessage;
+        schedulePendingPrepaidBillTimeout(pendingPrepaidBillId, 5, shipper.getId(), true);
+        socketIOServer.getBroadcastOperations().sendEvent(
+                pendingPrepaidBill.getCustomer().getId().toString(),
+                new PendingPrepaidBillSocketMessage(false, pendingPrepaidBillId)
+        );
+
+        return new ResponseMessage("Đã nhận đơn hàng và đợi khách hàng thanh toán");
     }
 
-    private void saveBillByPendingPrepaidBill(PendingPrepaidBill pendingPrepaidBill) {
-        Bill bill = billMapper.mapPendingPrepaidBillToBill(pendingPrepaidBill);
-        bill.setStatus(BillStatusCode.SHIPPER_RECEIVED.getCode());
-        bill.setShipper(userDetailsService.getCurrentUser());
+    @Override
+    @Transactional
+    public ResponseMessage paymentPendingPrepaidBillByCustomer(int pendingPrepaidBillId) {
+        PendingPrepaidBill pendingPrepaidBill = pendingPrepaidBillRepository
+                .findById(pendingPrepaidBillId)
+                .orElseThrow(() -> new NoSuchElementException("No such pending prepaid bill found"));
 
+        Bill bill = billMapper.mapPendingPrepaidBillToBill(pendingPrepaidBill);
+        bill.setStatus(BillStatusCode.PAID_FOR_SHIPPING.getCode());
         List<BillItem> billItemList = pendingPrepaidBill
                 .getPendingPrepaidBillItemList()
                 .stream()
@@ -120,8 +134,80 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
                     return billItem;
                 })
                 .collect(Collectors.toList());
-
         bill.setBillItemList(billItemList);
-        billRepository.saveAndFlush(bill);
+
+        billRepository.save(bill);
+
+        pendingPrepaidBillRepository.deleteById(pendingPrepaidBillId);
+
+        ScheduledFuture<?> timeoutTaskScheduledFuture = scheduledFutureMap.get(pendingPrepaidBillId);
+        scheduledFutureMap.remove(pendingPrepaidBillId);
+        if (scheduledFutureMap.isEmpty())
+            log.info("Removed task with PendingPrepaidBill ID {} from ScheduledFutureMap", pendingPrepaidBillId);
+        if (!timeoutTaskScheduledFuture.isDone()) {
+            timeoutTaskScheduledFuture.cancel(false);
+            log.info(
+                    "Task with PendingPrepaidBill ID {} is cancelled: {}",
+                    pendingPrepaidBillId,
+                    timeoutTaskScheduledFuture.isCancelled()
+            );
+        }
+
+        socketIOServer.getBroadcastOperations().sendEvent(
+                pendingPrepaidBill.getShipper().getId().toString(),
+                new PendingPrepaidBillSocketMessage(false, pendingPrepaidBillId)
+        );
+
+        return new ResponseMessage(BillStatusCode.PAID_FOR_SHIPPING.getMessage());
     }
+
+    @Override
+    public List<BillResponse> getAllPendingPrepaidBill() {
+        return pendingPrepaidBillRepository.findByShipperNull()
+                .stream()
+                .map(billMapper::mapPendingPrepaidBillToBillResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BillResponse> getAllReceivedPendingPrepaidBillByShipper() {
+        return pendingPrepaidBillRepository.findByShipper(userDetailsService.getCurrentUser())
+                .stream()
+                .map(billMapper::mapPendingPrepaidBillToBillResponse)
+                .collect(Collectors.toList());
+    }
+
+    private void schedulePendingPrepaidBillTimeout(
+            int pendingPrepaidBillId,
+            int timeoutMinutes,
+            Integer userId,
+            boolean isShipper
+    ) {
+        boolean taskCondition = (isShipper && pendingPrepaidBillRepository
+                .findByIdAndShipperNotNull(pendingPrepaidBillId)
+                .isPresent()
+        ) || (!isShipper && pendingPrepaidBillRepository
+                .findByIdAndShipperNull(pendingPrepaidBillId)
+                .isPresent()
+        );
+        if (taskCondition) {
+            ScheduledFuture<?> scheduledFuture = scheduledExecutorService.schedule(
+                    () -> {
+                        pendingPrepaidBillRepository.deleteById(pendingPrepaidBillId);
+
+                        socketIOServer.getBroadcastOperations().sendEvent(
+                                userId.toString(),
+                                new PendingPrepaidBillSocketMessage(true, pendingPrepaidBillId)
+                        );
+
+                        log.info("Deleted pending prepaid bill ID: {}", pendingPrepaidBillId);
+                    },
+                    timeoutMinutes,
+                    TimeUnit.MINUTES
+            );
+            scheduledFutureMap.put(pendingPrepaidBillId, scheduledFuture);
+            log.info("Task with PendingPrepaidBill ID {} is scheduled", pendingPrepaidBillId);
+        }
+    }
+
 }

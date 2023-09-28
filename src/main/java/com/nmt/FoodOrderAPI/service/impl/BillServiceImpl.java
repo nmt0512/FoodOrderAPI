@@ -100,12 +100,7 @@ public class BillServiceImpl implements BillService {
                 productRepository.saveAndFlush(product);
             });
 
-            int trackingId = jwtUtils.getTokenStaffTrackingId(token.substring(7));
-            StaffTracking staffTracking = staffTrackingRepository
-                    .findById(trackingId)
-                    .orElseThrow(() -> new NoSuchElementException("No such Staff Tracking found"));
-            staffTracking.setRevenue(staffTracking.getRevenue() + billRequest.getNewTotalPrice());
-            staffTrackingRepository.save(staffTracking);
+            saveStaffTrackingRevenue(token, billRequest);
         }
 
         if (Objects.equals(BillStatusCode.COMPLETED.getCode(), billRequest.getStatus()))
@@ -147,11 +142,9 @@ public class BillServiceImpl implements BillService {
             productRepository.save(product);
         });
 
-        ResponseMessage responseMessage = new ResponseMessage(BillStatusCode.PREPAID.getMessage());
+        socketIOServer.getBroadcastOperations().sendEvent("bill", 1);
 
-        socketIOServer.getBroadcastOperations().sendEvent("prepaidBill", responseMessage);
-
-        return responseMessage;
+        return new ResponseMessage(BillStatusCode.PREPAID.getMessage());
     }
 
     @Override
@@ -225,5 +218,14 @@ public class BillServiceImpl implements BillService {
 
         bill.setBillItemList(billItemList);
         return billRepository.save(bill);
+    }
+
+    private void saveStaffTrackingRevenue(String token, BillRequest billRequest) {
+        int trackingId = jwtUtils.getTokenStaffTrackingId(token.substring(7));
+        StaffTracking staffTracking = staffTrackingRepository
+                .findById(trackingId)
+                .orElseThrow(() -> new NoSuchElementException("No such Staff Tracking found"));
+        staffTracking.setRevenue(staffTracking.getRevenue() + billRequest.getNewTotalPrice());
+        staffTrackingRepository.save(staffTracking);
     }
 }

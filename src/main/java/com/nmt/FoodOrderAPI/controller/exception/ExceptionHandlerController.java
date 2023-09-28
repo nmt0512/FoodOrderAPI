@@ -1,7 +1,7 @@
 package com.nmt.FoodOrderAPI.controller.exception;
 
 import com.nmt.FoodOrderAPI.exception.OldPasswordNotMatchException;
-import com.nmt.FoodOrderAPI.exception.PendingPrepaidUpdateException;
+import com.nmt.FoodOrderAPI.exception.ReceivePendingPrepaidException;
 import com.nmt.FoodOrderAPI.exception.SendingLogoutErrorException;
 import com.nmt.FoodOrderAPI.response.ResponseData;
 import com.nmt.FoodOrderAPI.response.ResponseUtils;
@@ -91,13 +91,13 @@ public class ExceptionHandlerController {
         );
     }
 
-    @ExceptionHandler(PendingPrepaidUpdateException.class)
+    @ExceptionHandler(ReceivePendingPrepaidException.class)
     public ResponseEntity<ResponseData<Void>> handlePendingPrepaidUpdateException(
-            PendingPrepaidUpdateException pendingPrepaidUpdateException
+            ReceivePendingPrepaidException receivePendingPrepaidException
     ) {
         return ResponseUtils.error(
                 HttpStatus.UNPROCESSABLE_ENTITY.value(),
-                pendingPrepaidUpdateException.getMessage(),
+                receivePendingPrepaidException.getMessage(),
                 HttpStatus.UNPROCESSABLE_ENTITY
         );
     }

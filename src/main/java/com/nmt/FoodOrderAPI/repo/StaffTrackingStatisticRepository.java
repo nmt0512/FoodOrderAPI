@@ -20,4 +20,9 @@ public class StaffTrackingStatisticRepository {
                 "' GROUP BY st.StaffId, u.Fullname";
         return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(StaffTrackingStatisticResponse.class));
     }
+
+    public List<String> getAllMonthStaffTrackingStatistic() {
+        String query = "SELECT DISTINCT(FORMAT(LoginTime, 'MM/yyyy')) FROM StaffTracking";
+        return jdbcTemplate.queryForList(query, String.class);
+    }
 }

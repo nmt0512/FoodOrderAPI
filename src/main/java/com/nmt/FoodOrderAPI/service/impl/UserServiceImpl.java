@@ -2,6 +2,7 @@ package com.nmt.FoodOrderAPI.service.impl;
 
 import com.nmt.FoodOrderAPI.config.security.UserDetailsServiceImpl;
 import com.nmt.FoodOrderAPI.dto.ChangingPasswordRequest;
+import com.nmt.FoodOrderAPI.dto.ResponseMessage;
 import com.nmt.FoodOrderAPI.dto.UserRequest;
 import com.nmt.FoodOrderAPI.dto.UserResponse;
 import com.nmt.FoodOrderAPI.entity.User;
@@ -13,6 +14,7 @@ import com.nmt.FoodOrderAPI.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,10 +30,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void addUser(UserRequest userRequest) {
+    public void addUser(UserRequest userRequest, Boolean isShipper) {
         User user = userMapper.toUser(userRequest);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole(UserRolesCode.CUSTOMER.getCode());
+        if (isShipper)
+            user.setRole(UserRolesCode.SHIPPER.getCode());
+        else
+            user.setRole(UserRolesCode.CUSTOMER.getCode());
         userMapper.toUserResponse(userRepository.save(user));
     }
 
@@ -47,14 +52,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changeUserPassword(ChangingPasswordRequest changingPasswordRequest) {
+    @Transactional
+    public ResponseMessage changeUserPassword(ChangingPasswordRequest changingPasswordRequest) {
         User currentUser = userDetailsService.getCurrentUser();
         if (passwordEncoder.matches(changingPasswordRequest.getOldPassword(), currentUser.getPassword())) {
             String encodedNewPassword = passwordEncoder.encode(changingPasswordRequest.getNewPassword());
             currentUser.setPassword(encodedNewPassword);
             userRepository.save(currentUser);
+            return new ResponseMessage("Thành công!");
         } else
             throw new OldPasswordNotMatchException("Old password request doesn't match with current password");
     }
-
 }

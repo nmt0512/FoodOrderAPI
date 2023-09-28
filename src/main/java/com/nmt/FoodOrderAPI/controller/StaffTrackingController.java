@@ -27,4 +27,9 @@ public class StaffTrackingController {
         return ResponseUtils.success(staffTrackingService.getStaffTrackingStatistic(month, year));
     }
 
+    @GetMapping
+    public ResponseEntity<ResponseData<List<String>>> getAllMonthStaffTrackingStatistic() {
+        return ResponseUtils.success(staffTrackingService.getAllMonthStaffTrackingStatistic());
+    }
+
 }

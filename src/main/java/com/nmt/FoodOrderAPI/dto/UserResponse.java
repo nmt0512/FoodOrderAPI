@@ -11,7 +11,9 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserResponse implements Serializable {
+    private Integer id;
     private String username;
+    private Integer role;
     private Boolean gender;
     private Date birthday;
     private String fullname;

@@ -62,6 +62,9 @@ public class User {
     @OneToMany(mappedBy = "customer")
     private List<PendingPrepaidBill> customerPendingPrepaidBillList;
 
+    @OneToMany(mappedBy = "shipper")
+    private List<PendingPrepaidBill> shipperPendingPrepaidBillList;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "DBUserPromotion",

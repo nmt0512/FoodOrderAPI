@@ -7,9 +7,13 @@ import com.nmt.FoodOrderAPI.dto.ResponseMessage;
 import java.util.List;
 
 public interface PendingPrepaidBillService {
-    ResponseMessage createPendingPrepaidBill(PrepaidRequest prepaidRequest);
+    BillResponse createPendingPrepaidBill(PrepaidRequest prepaidRequest);
+
+    ResponseMessage confirmReceivedPendingPrepaidBill(int pendingPrepaidBillId);
+
+    ResponseMessage paymentPendingPrepaidBillByCustomer(int pendingPrepaidBillId);
 
     List<BillResponse> getAllPendingPrepaidBill();
 
-    ResponseMessage confirmReceivedPendingPrepaidBill(int pendingPrepaidBillId);
+    List<BillResponse> getAllReceivedPendingPrepaidBillByShipper();
 }

@@ -29,7 +29,6 @@ public class UserController {
 
     @PutMapping("/password")
     public ResponseEntity<ResponseMessage> changeUserPassword(@RequestBody ChangingPasswordRequest changingPasswordRequest) {
-        userService.changeUserPassword(changingPasswordRequest);
-        return ResponseEntity.ok(new ResponseMessage("Thành công!"));
+        return ResponseEntity.ok(userService.changeUserPassword(changingPasswordRequest));
     }
 }

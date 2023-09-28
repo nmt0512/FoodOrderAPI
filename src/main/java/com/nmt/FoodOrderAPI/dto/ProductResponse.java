@@ -1,5 +1,6 @@
 package com.nmt.FoodOrderAPI.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,5 +18,7 @@ public class ProductResponse implements Serializable {
     private String description;
     private Integer quantity;
     private Integer unitPrice;
+
+    @JsonProperty("imageLinks")
     private List<String> imageList;
 }
