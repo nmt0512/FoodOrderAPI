@@ -141,10 +141,9 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
         pendingPrepaidBillRepository.deleteById(pendingPrepaidBillId);
 
         ScheduledFuture<?> timeoutTaskScheduledFuture = scheduledFutureMap.get(pendingPrepaidBillId);
-        scheduledFutureMap.remove(pendingPrepaidBillId);
-        if (scheduledFutureMap.isEmpty())
+        if (timeoutTaskScheduledFuture != null && !timeoutTaskScheduledFuture.isDone()) {
+            scheduledFutureMap.remove(pendingPrepaidBillId);
             log.info("Removed task with PendingPrepaidBill ID {} from ScheduledFutureMap", pendingPrepaidBillId);
-        if (!timeoutTaskScheduledFuture.isDone()) {
             timeoutTaskScheduledFuture.cancel(false);
             log.info(
                     "Task with PendingPrepaidBill ID {} is cancelled: {}",
