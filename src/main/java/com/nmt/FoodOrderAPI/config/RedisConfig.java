@@ -1,8 +1,6 @@
 package com.nmt.FoodOrderAPI.config;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -11,12 +9,10 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.Duration;
 
 @Configuration
-@Slf4j
 public class RedisConfig {
 
     @Bean
@@ -53,9 +49,4 @@ public class RedisConfig {
         return template;
     }
 
-    @Scheduled(cron = "0 */30 * ? * *")
-    @CacheEvict(value = "bannerCache", allEntries = true)
-    private void clearAllCache() {
-        log.info("Cleared all cache in Redis");
-    }
 }
