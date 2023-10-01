@@ -1,8 +1,5 @@
-package com.nmt.FoodOrderAPI.controller.exception;
+package com.nmt.FoodOrderAPI.exception;
 
-import com.nmt.FoodOrderAPI.exception.OldPasswordNotMatchException;
-import com.nmt.FoodOrderAPI.exception.ReceivePendingPrepaidException;
-import com.nmt.FoodOrderAPI.exception.SendingLogoutErrorException;
 import com.nmt.FoodOrderAPI.response.ResponseData;
 import com.nmt.FoodOrderAPI.response.ResponseUtils;
 import org.springframework.http.HttpStatus;
@@ -18,7 +15,7 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
-public class ExceptionHandlerController {
+public class RestExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ResponseData<Void>> handleBadCredentialsException(BadCredentialsException badCredentialsException) {
@@ -30,11 +27,9 @@ public class ExceptionHandlerController {
         return ResponseUtils.error(400, noSuchElementException.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(OldPasswordNotMatchException.class)
-    public ResponseEntity<ResponseData<Void>> handleOldPasswordNotMatchException(
-            OldPasswordNotMatchException oldPasswordNotMatchException
-    ) {
-        return ResponseUtils.error(400, oldPasswordNotMatchException.getMessage(), HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(BaseException.class)
+    public ResponseEntity<ResponseData<Void>> handleBaseException(BaseException baseException) {
+        return ResponseUtils.error(baseException.getCode(), baseException.getMessage(), baseException.getHttpStatus());
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -77,28 +72,6 @@ public class ExceptionHandlerController {
                 400,
                 error,
                 HttpStatus.BAD_REQUEST
-        );
-    }
-
-    @ExceptionHandler(SendingLogoutErrorException.class)
-    public ResponseEntity<ResponseData<Void>> handleSendingLogoutErrorException(
-            SendingLogoutErrorException sendingLogoutErrorException
-    ) {
-        return ResponseUtils.error(
-                400,
-                sendingLogoutErrorException.getMessage(),
-                HttpStatus.BAD_REQUEST
-        );
-    }
-
-    @ExceptionHandler(ReceivePendingPrepaidException.class)
-    public ResponseEntity<ResponseData<Void>> handlePendingPrepaidUpdateException(
-            ReceivePendingPrepaidException receivePendingPrepaidException
-    ) {
-        return ResponseUtils.error(
-                HttpStatus.UNPROCESSABLE_ENTITY.value(),
-                receivePendingPrepaidException.getMessage(),
-                HttpStatus.UNPROCESSABLE_ENTITY
         );
     }
 

@@ -7,7 +7,8 @@ import com.nmt.FoodOrderAPI.dto.UserRequest;
 import com.nmt.FoodOrderAPI.dto.UserResponse;
 import com.nmt.FoodOrderAPI.entity.User;
 import com.nmt.FoodOrderAPI.enums.UserRolesCode;
-import com.nmt.FoodOrderAPI.exception.OldPasswordNotMatchException;
+import com.nmt.FoodOrderAPI.exception.BaseException;
+import com.nmt.FoodOrderAPI.exception.CommonErrorCode;
 import com.nmt.FoodOrderAPI.mapper.UserMapper;
 import com.nmt.FoodOrderAPI.repo.UserRepository;
 import com.nmt.FoodOrderAPI.service.UserService;
@@ -61,6 +62,6 @@ public class UserServiceImpl implements UserService {
             userRepository.save(currentUser);
             return new ResponseMessage("Thành công!");
         } else
-            throw new OldPasswordNotMatchException("Old password request doesn't match with current password");
+            throw new BaseException(CommonErrorCode.OLD_PASSWORD_NOT_MATCH);
     }
 }

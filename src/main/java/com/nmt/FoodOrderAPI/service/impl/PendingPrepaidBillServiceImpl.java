@@ -5,7 +5,8 @@ import com.nmt.FoodOrderAPI.config.security.UserDetailsServiceImpl;
 import com.nmt.FoodOrderAPI.dto.*;
 import com.nmt.FoodOrderAPI.entity.*;
 import com.nmt.FoodOrderAPI.enums.BillStatusCode;
-import com.nmt.FoodOrderAPI.exception.ReceivePendingPrepaidException;
+import com.nmt.FoodOrderAPI.exception.BaseException;
+import com.nmt.FoodOrderAPI.exception.CommonErrorCode;
 import com.nmt.FoodOrderAPI.mapper.BillMapper;
 import com.nmt.FoodOrderAPI.repo.BillRepository;
 import com.nmt.FoodOrderAPI.repo.PendingPrepaidBillRepository;
@@ -83,7 +84,7 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
 
         BillResponse billResponse = billMapper.mapPendingPrepaidBillToBillResponse(pendingPrepaidBill);
 
-        schedulePendingPrepaidBillTimeout(pendingPrepaidBill.getId(), 3, customer.getId(), false);
+        schedulePendingPrepaidBillTimeout(pendingPrepaidBill.getId(), 5, customer.getId(), false);
         socketIOServer.getBroadcastOperations().sendEvent("pendingPrepaidBill", 1);
 
         return billResponse;
@@ -97,7 +98,7 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
                 .orElseThrow(() -> new NoSuchElementException("No pending prepaid bill found"));
 
         if (pendingPrepaidBill.getShipper() != null)
-            throw new ReceivePendingPrepaidException("Bill was received by a shipper and update failed");
+            throw new BaseException(CommonErrorCode.RECEIVE_PENDING_PREPAID_BILL_FAILED);
 
         User shipper = userDetailsService.getCurrentUser();
         pendingPrepaidBill.setShipper(shipper);
@@ -107,7 +108,7 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
         if (scheduledFuture != null && !scheduledFuture.isDone())
             scheduledFuture.cancel(false);
 
-        schedulePendingPrepaidBillTimeout(pendingPrepaidBillId, 5, shipper.getId(), true);
+        schedulePendingPrepaidBillTimeout(pendingPrepaidBillId, 10, shipper.getId(), true);
         socketIOServer.getBroadcastOperations().sendEvent(
                 pendingPrepaidBill.getCustomer().getId().toString(),
                 new PendingPrepaidBillSocketMessage(false, pendingPrepaidBillId)
