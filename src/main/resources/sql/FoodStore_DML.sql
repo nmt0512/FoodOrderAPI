@@ -142,11 +142,11 @@ DELETE FROM StaffTracking
 
 SELECT * FROM PendingPrepaidBill
 
-SELECT * FROM PendingPrepaidBillItem
+SELECT * FROM PendingPrepaidBillItem 
 
-DELETE FROM PendingPrepaidBill WHERE Id = 1
+DELETE FROM PendingPrepaidBill WHERE Id != 40
 
-DELETE FROM PendingPrepaidBillItem
+DELETE FROM PendingPrepaidBillItem WHERE PendingPrepaidBillId != 40
 
 CREATE TRIGGER Trigger_UpdateOnlyOneTime_Shipper 
 ON PendingPrepaidBill 

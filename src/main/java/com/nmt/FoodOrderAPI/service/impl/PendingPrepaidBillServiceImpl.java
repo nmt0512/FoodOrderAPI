@@ -2,7 +2,10 @@ package com.nmt.FoodOrderAPI.service.impl;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import com.nmt.FoodOrderAPI.config.security.UserDetailsServiceImpl;
-import com.nmt.FoodOrderAPI.dto.*;
+import com.nmt.FoodOrderAPI.dto.BillItemRequest;
+import com.nmt.FoodOrderAPI.dto.BillResponse;
+import com.nmt.FoodOrderAPI.dto.PrepaidRequest;
+import com.nmt.FoodOrderAPI.dto.ResponseMessage;
 import com.nmt.FoodOrderAPI.entity.*;
 import com.nmt.FoodOrderAPI.enums.BillStatusCode;
 import com.nmt.FoodOrderAPI.exception.BaseException;
@@ -84,7 +87,7 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
 
         BillResponse billResponse = billMapper.mapPendingPrepaidBillToBillResponse(pendingPrepaidBill);
 
-        schedulePendingPrepaidBillTimeout(pendingPrepaidBill.getId(), 5, customer.getId(), false);
+        schedulePendingPrepaidBillTimeout(pendingPrepaidBill.getId(), 2, customer.getId(), false);
         socketIOServer.getBroadcastOperations().sendEvent("pendingPrepaidBill", 1);
 
         return billResponse;
@@ -105,14 +108,17 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
         pendingPrepaidBillRepository.save(pendingPrepaidBill);
 
         ScheduledFuture<?> scheduledFuture = scheduledFutureMap.get(pendingPrepaidBillId);
-        if (scheduledFuture != null && !scheduledFuture.isDone())
+        if (scheduledFuture != null && !scheduledFuture.isDone()) {
             scheduledFuture.cancel(false);
+            schedulePendingPrepaidBillTimeout(pendingPrepaidBillId, 10, shipper.getId(), true);
+            log.info(
+                    "Task with PendingPrepaidBill ID {} is cancelled: {} and updated",
+                    pendingPrepaidBillId,
+                    scheduledFuture.isCancelled()
+            );
+        }
 
-        schedulePendingPrepaidBillTimeout(pendingPrepaidBillId, 10, shipper.getId(), true);
-        socketIOServer.getBroadcastOperations().sendEvent(
-                pendingPrepaidBill.getCustomer().getId().toString(),
-                new PendingPrepaidBillSocketMessage(false, pendingPrepaidBillId)
-        );
+        socketIOServer.getBroadcastOperations().sendEvent(pendingPrepaidBill.getCustomer().getId().toString(), true);
 
         return new ResponseMessage("Đã nhận đơn hàng và đợi khách hàng thanh toán");
     }
@@ -144,26 +150,22 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
         ScheduledFuture<?> timeoutTaskScheduledFuture = scheduledFutureMap.get(pendingPrepaidBillId);
         if (timeoutTaskScheduledFuture != null && !timeoutTaskScheduledFuture.isDone()) {
             scheduledFutureMap.remove(pendingPrepaidBillId);
-            log.info("Removed task with PendingPrepaidBill ID {} from ScheduledFutureMap", pendingPrepaidBillId);
             timeoutTaskScheduledFuture.cancel(false);
             log.info(
-                    "Task with PendingPrepaidBill ID {} is cancelled: {}",
+                    "Task with PendingPrepaidBill ID {} is removed and cancelled: {}",
                     pendingPrepaidBillId,
                     timeoutTaskScheduledFuture.isCancelled()
             );
         }
 
-        socketIOServer.getBroadcastOperations().sendEvent(
-                pendingPrepaidBill.getShipper().getId().toString(),
-                new PendingPrepaidBillSocketMessage(false, pendingPrepaidBillId)
-        );
+        socketIOServer.getBroadcastOperations().sendEvent(pendingPrepaidBill.getShipper().getId().toString(), true);
 
         return new ResponseMessage(BillStatusCode.PAID_FOR_SHIPPING.getMessage());
     }
 
     @Override
     public List<BillResponse> getAllPendingPrepaidBill() {
-        return pendingPrepaidBillRepository.findByShipperNull()
+        return pendingPrepaidBillRepository.findByShipperNullOrderByTimeDesc()
                 .stream()
                 .map(billMapper::mapPendingPrepaidBillToBillResponse)
                 .collect(Collectors.toList());
@@ -194,11 +196,7 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
             ScheduledFuture<?> scheduledFuture = scheduledExecutorService.schedule(
                     () -> {
                         pendingPrepaidBillRepository.deleteById(pendingPrepaidBillId);
-
-                        socketIOServer.getBroadcastOperations().sendEvent(
-                                userId.toString(),
-                                new PendingPrepaidBillSocketMessage(true, pendingPrepaidBillId)
-                        );
+                        socketIOServer.getBroadcastOperations().sendEvent(userId.toString(), false);
 
                         log.info("Deleted pending prepaid bill ID: {}", pendingPrepaidBillId);
                     },

@@ -8,7 +8,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
@@ -28,12 +28,15 @@ public class BannerServiceImpl implements BannerService {
         return bannerRepository.findAllLink();
     }
 
-    @Scheduled(cron = "0 */30 * ? * *")
     @PreDestroy
     protected void clearBannerCache() {
-        Cache bannerCache = cacheManager.getCache("bannerCache");
-        if (bannerCache != null)
-            bannerCache.clear();
+        try {
+            Cache bannerCache = cacheManager.getCache("bannerCache");
+            if (bannerCache != null)
+                bannerCache.clear();
+        } catch (RedisConnectionFailureException redisConnectionFailureException) {
+            log.error("Connection to Redis cache failed");
+        }
     }
 
 }

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PendingPrepaidBillRepository extends JpaRepository<PendingPrepaidBill, Integer> {
-    List<PendingPrepaidBill> findByShipperNull();
+    List<PendingPrepaidBill> findByShipperNullOrderByTimeDesc();
 
     List<PendingPrepaidBill> findByShipper(User shipper);
 
