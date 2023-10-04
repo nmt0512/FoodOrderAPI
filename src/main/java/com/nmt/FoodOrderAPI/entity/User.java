@@ -65,6 +65,9 @@ public class User {
     @OneToMany(mappedBy = "shipper")
     private List<PendingPrepaidBill> shipperPendingPrepaidBillList;
 
+    @OneToMany(mappedBy = "user")
+    private List<FirebaseUserDevice> firebaseUserDeviceList;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "DBUserPromotion",

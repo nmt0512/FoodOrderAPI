@@ -166,3 +166,7 @@ BEGIN
 END;
 
 
+SELECT * FROM FirebaseUserDevice
+
+DELETE FROM FirebaseUserDevice WHERE Id = 6
+

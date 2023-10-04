@@ -16,6 +16,7 @@ import com.nmt.FoodOrderAPI.repo.PendingPrepaidBillRepository;
 import com.nmt.FoodOrderAPI.repo.ProductRepository;
 import com.nmt.FoodOrderAPI.repo.PromotionRepository;
 import com.nmt.FoodOrderAPI.service.PendingPrepaidBillService;
+import com.nmt.FoodOrderAPI.service.firebase.FirebaseMessageCloudService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,7 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
     private final SocketIOServer socketIOServer;
     private final UserDetailsServiceImpl userDetailsService;
     private final ScheduledExecutorService scheduledExecutorService;
+    private final FirebaseMessageCloudService firebaseMessageCloudService;
     private final BillMapper billMapper;
     private final Map<Integer, ScheduledFuture<?>> scheduledFutureMap;
 
@@ -118,7 +120,16 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
             );
         }
 
-        socketIOServer.getBroadcastOperations().sendEvent(pendingPrepaidBill.getCustomer().getId().toString(), true);
+        socketIOServer
+                .getBroadcastOperations()
+                .sendEvent(
+                        pendingPrepaidBill
+                                .getCustomer()
+                                .getId()
+                                .toString(),
+                        true,
+                        shipper.getId()
+                );
 
         return new ResponseMessage("Đã nhận đơn hàng và đợi khách hàng thanh toán");
     }
@@ -143,7 +154,7 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
                 .collect(Collectors.toList());
         bill.setBillItemList(billItemList);
 
-        billRepository.save(bill);
+        Bill savedBill = billRepository.save(bill);
 
         pendingPrepaidBillRepository.deleteById(pendingPrepaidBillId);
 
@@ -159,6 +170,11 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
         }
 
         socketIOServer.getBroadcastOperations().sendEvent(pendingPrepaidBill.getShipper().getId().toString(), true);
+
+        firebaseMessageCloudService.sendNotificationToShipperTopic(
+                savedBill.getShipper(),
+                savedBill.getCustomer().getFullname()
+        );
 
         return new ResponseMessage(BillStatusCode.PAID_FOR_SHIPPING.getMessage());
     }
