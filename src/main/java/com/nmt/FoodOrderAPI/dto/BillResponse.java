@@ -18,6 +18,7 @@ public class BillResponse implements Serializable {
     private Integer id;
     private Integer totalPrice;
     private String time;
+    private String address;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer status;

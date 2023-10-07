@@ -54,7 +54,23 @@ UPDATE DBUser SET Phone = '0362764805' WHERE Id = 23
 INSERT INTO DBUser(Username, Password, Fullname, Role, Email, Gender) VALUES('shipper5', 
 '$2a$12$VHBb4mLxAXKlHOkK6TT9guU0MgD47eoWG8JTMMRQm6S1WArh6LHoG', 'Shipper5', 2, 'shipper5@gmail.com', 0)
 
+SELECT DISTINCT FORMAT(LoginTime, 'MM/yyyy') AS MonthYear
+FROM StaffTracking
+ORDER BY FORMAT(LoginTime, 'MM/yyyy') DESC
 
+SELECT MonthYear
+FROM (
+    SELECT DISTINCT FORMAT(LoginTime, 'MM/yyyy') AS MonthYear, DATEFROMPARTS(YEAR(LoginTime), MONTH(LoginTime), 1) AS SortDate
+    FROM StaffTracking
+) AS subquery
+ORDER BY SortDate DESC
+
+SELECT DISTINCT FORMAT(LoginTime, 'MM-yyyy') FROM StaffTracking ORDER BY FORMAT(LoginTime, 'MM-yyyy') DESC
+
+SELECT DATEFROMPARTS(YEAR(LoginTime), MONTH(LoginTime), 1) 
+FROM StaffTracking 
+GROUP BY LoginTime 
+ORDER BY LoginTime DESC
 
 ALTER TABLE DBUser
 ALTER COLUMN Gender bit null
@@ -91,6 +107,8 @@ INSERT INTO Banner(Link) VALUES('https://res.cloudinary.com/dtcdff7yy/image/uplo
 SELECT * FROM Banner
 
 SELECT * FROM DBUser
+UPDATE DBUser SET Email = 'leductho1812@gmail.com' WHERE Id = 23
+
 SELECT * FROM Promotion
 
 INSERT INTO DBUserPromotion VALUES(6,4)
@@ -120,9 +138,6 @@ SELECT * FROM StaffTracking
 
 UPDATE StaffTracking SET Revenue = 210000 WHERE StaffId IN (26, 27)
 
-SELECT DISTINCT(FORMAT(LoginTime, 'MM/yyyy')) AS Time 
-FROM StaffTracking
-
 DELETE FROM StaffTracking
 
 DROP TABLE StaffTracking
@@ -143,6 +158,8 @@ DELETE FROM StaffTracking
 SELECT * FROM PendingPrepaidBill
 
 SELECT * FROM PendingPrepaidBillItem 
+
+SELECT * FROM StaffTracking
 
 DELETE FROM PendingPrepaidBill WHERE Id != 40
 

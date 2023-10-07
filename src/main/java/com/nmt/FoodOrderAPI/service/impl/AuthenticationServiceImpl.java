@@ -46,7 +46,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String token = jwtUtils.generateToken(userDetails);
 
         if (roleCode == UserRolesCode.STAFF.getCode()) {
-            StaffTracking staffTracking = staffTrackingRepository.save(new StaffTracking());
+            StaffTracking staffTracking = new StaffTracking();
+            staffTracking.setStaff(userDetailsService.getCurrentUser());
+            staffTracking = staffTrackingRepository.save(staffTracking);
             token = jwtUtils.generateToken(userDetails, staffTracking.getId());
         }
 

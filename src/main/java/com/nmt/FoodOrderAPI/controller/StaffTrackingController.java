@@ -19,12 +19,11 @@ import java.util.List;
 public class StaffTrackingController {
     private final StaffTrackingService staffTrackingService;
 
-    @GetMapping("/{month}/{year}")
+    @GetMapping("/{time}")
     public ResponseEntity<ResponseData<List<StaffTrackingStatisticResponse>>> getStaffTrackingStatistic(
-            @PathVariable(name = "month") Integer month,
-            @PathVariable(name = "year") Integer year
+            @PathVariable(name = "time") String time
     ) {
-        return ResponseUtils.success(staffTrackingService.getStaffTrackingStatistic(month, year));
+        return ResponseUtils.success(staffTrackingService.getStaffTrackingStatistic(time));
     }
 
     @GetMapping

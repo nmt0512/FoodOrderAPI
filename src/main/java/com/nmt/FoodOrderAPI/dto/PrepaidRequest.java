@@ -22,6 +22,7 @@ public class PrepaidRequest implements Serializable {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer promotionId;
 
-    @JsonProperty("totalPrice")
+    private String address;
+
     private Integer totalPrice;
 }

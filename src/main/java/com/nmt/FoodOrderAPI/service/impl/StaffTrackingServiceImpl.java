@@ -14,9 +14,8 @@ public class StaffTrackingServiceImpl implements StaffTrackingService {
     private final StaffTrackingStatisticRepository staffTrackingStatisticRepository;
 
     @Override
-    public List<StaffTrackingStatisticResponse> getStaffTrackingStatistic(int month, int year) {
-        String monthOfYear = String.format("%02d/%04d", month, year);
-        return staffTrackingStatisticRepository.getStaffTrackingStatisticByMonthOfYear(monthOfYear);
+    public List<StaffTrackingStatisticResponse> getStaffTrackingStatistic(String time) {
+        return staffTrackingStatisticRepository.getStaffTrackingStatisticByMonthOfYear(time);
     }
 
     @Override

@@ -72,7 +72,8 @@ public class SecurityConfiguration {
                 .antMatchers(
                         "/api/pending-prepaid/receive/**",
                         "/api/pending-prepaid/received",
-                        "/api/pending-prepaid/all"
+                        "/api/pending-prepaid/all",
+                        "/api/pending-prepaid/complete/**"
                 )
                 .hasRole("SHIPPER")
                 .anyRequest()
@@ -91,7 +92,7 @@ public class SecurityConfiguration {
                 .and()
 
                 .logout()
-                .logoutUrl("/api/auth/logout")
+                .logoutUrl("/api/logout")
                 .addLogoutHandler(logoutHandler)
                 .logoutSuccessHandler(logoutSuccessHandler)
                 .invalidateHttpSession(true)

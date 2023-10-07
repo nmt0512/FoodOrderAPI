@@ -5,7 +5,7 @@ import com.nmt.FoodOrderAPI.dto.StaffTrackingStatisticResponse;
 import java.util.List;
 
 public interface StaffTrackingService {
-    List<StaffTrackingStatisticResponse> getStaffTrackingStatistic(int month, int year);
+    List<StaffTrackingStatisticResponse> getStaffTrackingStatistic(String time);
 
     List<String> getAllMonthStaffTrackingStatistic();
 }

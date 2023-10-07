@@ -19,8 +19,8 @@ public class PendingPrepaidBillController {
     private final PendingPrepaidBillService pendingPrepaidBillService;
 
     @PostMapping
-    public ResponseEntity<BillResponse> orderPendingPrepaidBill(@RequestBody PrepaidRequest prepaidRequest) {
-        return ResponseEntity.ok(pendingPrepaidBillService.createPendingPrepaidBill(prepaidRequest));
+    public ResponseEntity<ResponseData<BillResponse>> orderPendingPrepaidBill(@RequestBody PrepaidRequest prepaidRequest) {
+        return ResponseUtils.success(pendingPrepaidBillService.createPendingPrepaidBill(prepaidRequest));
     }
 
     @GetMapping("/all")
@@ -30,7 +30,7 @@ public class PendingPrepaidBillController {
 
     @GetMapping("/received")
     public ResponseEntity<ResponseData<List<BillResponse>>> getAllReceivedPendingPrepaidBillByShipper() {
-        return ResponseUtils.success(pendingPrepaidBillService.getAllReceivedPendingPrepaidBillByShipper());
+        return ResponseUtils.success(pendingPrepaidBillService.getAllReceivedCustomerPrepaidBillByShipper());
     }
 
     @PostMapping("/payment/{id}")
@@ -41,5 +41,10 @@ public class PendingPrepaidBillController {
     @PutMapping("/receive/{id}")
     public ResponseEntity<ResponseMessage> confirmReceivedPendingPrepaidBill(@PathVariable("id") Integer pendingPrepaidBillId) {
         return ResponseEntity.ok(pendingPrepaidBillService.confirmReceivedPendingPrepaidBill(pendingPrepaidBillId));
+    }
+
+    @PutMapping("/complete/{id}")
+    public ResponseEntity<ResponseMessage> completeReceivedCustomerPrepaidBill(@PathVariable("id") Integer pendingPrepaidBillId) {
+        return ResponseEntity.ok(pendingPrepaidBillService.completeCustomerPrepaidBillByShipper(pendingPrepaidBillId));
     }
 }

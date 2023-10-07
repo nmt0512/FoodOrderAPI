@@ -26,9 +26,15 @@ public class PendingPrepaidBill {
     @Column(name = "Time", nullable = false)
     private Timestamp time;
 
+    @Column(name = "Address")
+    private String address;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CustomerId")
     private User customer;
+
+    @Column(name = "IsCustomerPrepaid", columnDefinition = "bit DEFAULT 0")
+    private Boolean isCustomerPrepaid;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ShipperId")
@@ -43,5 +49,11 @@ public class PendingPrepaidBill {
             cascade = {CascadeType.PERSIST, CascadeType.REMOVE}
     )
     private List<PendingPrepaidBillItem> pendingPrepaidBillItemList;
+
+    @PrePersist
+    private void prePersist() {
+        if (isCustomerPrepaid == null)
+            isCustomerPrepaid = false;
+    }
 
 }

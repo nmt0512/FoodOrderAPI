@@ -13,7 +13,9 @@ public interface PendingPrepaidBillService {
 
     ResponseMessage paymentPendingPrepaidBillByCustomer(int pendingPrepaidBillId);
 
+    ResponseMessage completeCustomerPrepaidBillByShipper(int pendingPrepaidBillId);
+
     List<BillResponse> getAllPendingPrepaidBill();
 
-    List<BillResponse> getAllReceivedPendingPrepaidBillByShipper();
+    List<BillResponse> getAllReceivedCustomerPrepaidBillByShipper();
 }

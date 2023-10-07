@@ -15,28 +15,28 @@ import javax.annotation.PreDestroy;
 import java.util.List;
 
 @Service
-@EnableCaching
+//@EnableCaching
 @Slf4j
 @RequiredArgsConstructor
 public class BannerServiceImpl implements BannerService {
     private final BannerRepository bannerRepository;
-    private final CacheManager cacheManager;
+//    private final CacheManager cacheManager;
 
     @Override
-    @Cacheable(value = "bannerCache")
+//    @Cacheable(value = "bannerCache")
     public List<String> findAllBannerLink() {
         return bannerRepository.findAllLink();
     }
 
-    @PreDestroy
-    protected void clearBannerCache() {
-        try {
-            Cache bannerCache = cacheManager.getCache("bannerCache");
-            if (bannerCache != null)
-                bannerCache.clear();
-        } catch (RedisConnectionFailureException redisConnectionFailureException) {
-            log.error("Connection to Redis cache failed");
-        }
-    }
+//    @PreDestroy
+//    protected void clearBannerCache() {
+//        try {
+//            Cache bannerCache = cacheManager.getCache("bannerCache");
+//            if (bannerCache != null)
+//                bannerCache.clear();
+//        } catch (RedisConnectionFailureException redisConnectionFailureException) {
+//            log.error("Connection to Redis cache failed");
+//        }
+//    }
 
 }

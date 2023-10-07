@@ -2,10 +2,7 @@ package com.nmt.FoodOrderAPI.service.impl;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import com.nmt.FoodOrderAPI.config.security.UserDetailsServiceImpl;
-import com.nmt.FoodOrderAPI.dto.BillItemRequest;
-import com.nmt.FoodOrderAPI.dto.BillResponse;
-import com.nmt.FoodOrderAPI.dto.PrepaidRequest;
-import com.nmt.FoodOrderAPI.dto.ResponseMessage;
+import com.nmt.FoodOrderAPI.dto.*;
 import com.nmt.FoodOrderAPI.entity.*;
 import com.nmt.FoodOrderAPI.enums.BillStatusCode;
 import com.nmt.FoodOrderAPI.exception.BaseException;
@@ -16,17 +13,18 @@ import com.nmt.FoodOrderAPI.repo.PendingPrepaidBillRepository;
 import com.nmt.FoodOrderAPI.repo.ProductRepository;
 import com.nmt.FoodOrderAPI.repo.PromotionRepository;
 import com.nmt.FoodOrderAPI.service.PendingPrepaidBillService;
-import com.nmt.FoodOrderAPI.service.firebase.FirebaseMessageCloudService;
+import com.nmt.FoodOrderAPI.service.email.EmailService;
+import com.nmt.FoodOrderAPI.service.firebase.FirebaseCloudMessagingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.mail.MessagingException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +41,8 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
     private final SocketIOServer socketIOServer;
     private final UserDetailsServiceImpl userDetailsService;
     private final ScheduledExecutorService scheduledExecutorService;
-    private final FirebaseMessageCloudService firebaseMessageCloudService;
+    private final FirebaseCloudMessagingService firebaseCloudMessagingService;
+    private final EmailService emailService;
     private final BillMapper billMapper;
     private final Map<Integer, ScheduledFuture<?>> scheduledFutureMap;
 
@@ -66,6 +65,7 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
                 .builder()
                 .time(new Timestamp(System.currentTimeMillis()))
                 .totalPrice(prepaidRequest.getTotalPrice())
+                .address(prepaidRequest.getAddress())
                 .customer(customer)
                 .promotion(usedPromotion)
                 .build();
@@ -90,7 +90,11 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
         BillResponse billResponse = billMapper.mapPendingPrepaidBillToBillResponse(pendingPrepaidBill);
 
         schedulePendingPrepaidBillTimeout(pendingPrepaidBill.getId(), 2, customer.getId(), false);
-        socketIOServer.getBroadcastOperations().sendEvent("pendingPrepaidBill", 1);
+
+        CompletableFuture.runAsync(() -> {
+            socketIOServer.getBroadcastOperations().sendEvent("pendingPrepaidBill", 1);
+            firebaseCloudMessagingService.sendNotificationToShipperTopic("shipperTopic", customer.getFullname());
+        });
 
         return billResponse;
     }
@@ -120,16 +124,11 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
             );
         }
 
-        socketIOServer
-                .getBroadcastOperations()
-                .sendEvent(
-                        pendingPrepaidBill
-                                .getCustomer()
-                                .getId()
-                                .toString(),
-                        true,
-                        shipper.getId()
-                );
+        socketIOServer.getBroadcastOperations().sendEvent(
+                pendingPrepaidBill.getCustomer().getId().toString(),
+                true,
+                shipper.getId()
+        );
 
         return new ResponseMessage("Đã nhận đơn hàng và đợi khách hàng thanh toán");
     }
@@ -140,6 +139,8 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
         PendingPrepaidBill pendingPrepaidBill = pendingPrepaidBillRepository
                 .findById(pendingPrepaidBillId)
                 .orElseThrow(() -> new NoSuchElementException("No such pending prepaid bill found"));
+        pendingPrepaidBill.setIsCustomerPrepaid(true);
+        pendingPrepaidBillRepository.save(pendingPrepaidBill);
 
         Bill bill = billMapper.mapPendingPrepaidBillToBill(pendingPrepaidBill);
         bill.setStatus(BillStatusCode.PAID_FOR_SHIPPING.getCode());
@@ -156,8 +157,6 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
 
         Bill savedBill = billRepository.save(bill);
 
-        pendingPrepaidBillRepository.deleteById(pendingPrepaidBillId);
-
         ScheduledFuture<?> timeoutTaskScheduledFuture = scheduledFutureMap.get(pendingPrepaidBillId);
         if (timeoutTaskScheduledFuture != null && !timeoutTaskScheduledFuture.isDone()) {
             scheduledFutureMap.remove(pendingPrepaidBillId);
@@ -170,13 +169,35 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
         }
 
         socketIOServer.getBroadcastOperations().sendEvent(pendingPrepaidBill.getShipper().getId().toString(), true);
-
-        firebaseMessageCloudService.sendNotificationToShipperTopic(
+        firebaseCloudMessagingService.sendNotificationToShipper(
                 savedBill.getShipper(),
                 savedBill.getCustomer().getFullname()
         );
 
         return new ResponseMessage(BillStatusCode.PAID_FOR_SHIPPING.getMessage());
+    }
+
+    @Override
+    @Transactional
+    public ResponseMessage completeCustomerPrepaidBillByShipper(int pendingPrepaidBillId) {
+        CompletableFuture.runAsync(() -> {
+            PendingPrepaidBill pendingPrepaidBill = pendingPrepaidBillRepository
+                    .findById(pendingPrepaidBillId)
+                    .orElseThrow(() -> new NoSuchElementException("No such pending prepaid bill found"));
+            String customerEmail = pendingPrepaidBill.getCustomer().getEmail();
+
+            if (customerEmail != null) {
+                try {
+                    CompletedBillNotification completedBillNotification = mapPendingPrepaidBillToCompletedBillNotification(pendingPrepaidBill);
+                    emailService.sendCompletedBillNotificationEmail(customerEmail, completedBillNotification);
+                } catch (MessagingException exception) {
+                    log.error("Sending email to customer error");
+                }
+            }
+        });
+
+        pendingPrepaidBillRepository.deleteById(pendingPrepaidBillId);
+        return new ResponseMessage("Shipper đã hoàn thành đơn hàng");
     }
 
     @Override
@@ -188,8 +209,8 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
     }
 
     @Override
-    public List<BillResponse> getAllReceivedPendingPrepaidBillByShipper() {
-        return pendingPrepaidBillRepository.findByShipper(userDetailsService.getCurrentUser())
+    public List<BillResponse> getAllReceivedCustomerPrepaidBillByShipper() {
+        return pendingPrepaidBillRepository.findByShipperAndIsCustomerPrepaidTrue(userDetailsService.getCurrentUser())
                 .stream()
                 .map(billMapper::mapPendingPrepaidBillToBillResponse)
                 .collect(Collectors.toList());
@@ -222,6 +243,35 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
             scheduledFutureMap.put(pendingPrepaidBillId, scheduledFuture);
             log.info("Task with PendingPrepaidBill ID {} is scheduled", pendingPrepaidBillId);
         }
+    }
+
+    private CompletedBillNotification mapPendingPrepaidBillToCompletedBillNotification(PendingPrepaidBill pendingPrepaidBill) {
+        List<CompletedBillItem> completedBillItemList = pendingPrepaidBill.getPendingPrepaidBillItemList()
+                .stream()
+                .map(pendingPrepaidBillItem -> {
+                    Product product = pendingPrepaidBillItem.getProduct();
+                    return CompletedBillItem.builder()
+                            .name(product.getName())
+                            .quantity(pendingPrepaidBillItem.getQuantity())
+                            .price(pendingPrepaidBillItem.getPrice())
+                            .image(product
+                                    .getImageList()
+                                    .get(0)
+                                    .getLink()
+                            )
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        String completedTime = formatter.format(new Date());
+
+        return CompletedBillNotification.builder()
+                .pendingPrepaidBillId(pendingPrepaidBill.getId())
+                .totalPrice(pendingPrepaidBill.getTotalPrice())
+                .completedTime(completedTime)
+                .completedBillItemList(completedBillItemList)
+                .build();
     }
 
 }

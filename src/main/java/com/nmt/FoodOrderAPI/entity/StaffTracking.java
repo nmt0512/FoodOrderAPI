@@ -1,7 +1,6 @@
 package com.nmt.FoodOrderAPI.entity;
 
 import lombok.*;
-import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -23,7 +22,6 @@ public class StaffTracking {
     @Column(name = "Id")
     private Integer id;
 
-    @CreatedBy
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "StaffId", nullable = false)
     private User staff;

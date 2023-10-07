@@ -29,6 +29,9 @@ public class Bill {
     @Column(name = "Status", nullable = false)
     private Integer status;
 
+    @Column(name = "Address")
+    private String address;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "StaffId")
     private User staff;

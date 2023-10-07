@@ -4,11 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedBy;
 
 import javax.persistence.*;
 
 @Entity
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"UserId", "FirebaseToken"})})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,9 +25,8 @@ public class FirebaseUserDevice {
     @Column(name = "FirebaseToken")
     private String firebaseToken;
 
-    @CreatedBy
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "UserId", unique = true, nullable = false)
+    @JoinColumn(name = "UserId")
     private User user;
 
 }

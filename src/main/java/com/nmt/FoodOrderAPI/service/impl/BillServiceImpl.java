@@ -126,6 +126,7 @@ public class BillServiceImpl implements BillService {
                 .time(new Timestamp(System.currentTimeMillis()))
                 .status(BillStatusCode.PREPAID.getCode())
                 .totalPrice(prepaidRequest.getTotalPrice())
+                .address(prepaidRequest.getAddress())
                 .customer(userDetailsService.getCurrentUser())
                 .staff(null)
                 .promotion(usedPromotion)
