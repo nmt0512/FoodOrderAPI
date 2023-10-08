@@ -89,7 +89,7 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
 
         BillResponse billResponse = billMapper.mapPendingPrepaidBillToBillResponse(pendingPrepaidBill);
 
-        schedulePendingPrepaidBillTimeout(pendingPrepaidBill.getId(), 2, customer.getId(), false);
+        schedulePendingPrepaidBillTimeout(pendingPrepaidBill.getId(), 5, customer.getId(), false);
 
         CompletableFuture.runAsync(() -> {
             socketIOServer.getBroadcastOperations().sendEvent("pendingPrepaidBill", 1);
@@ -116,9 +116,9 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
         ScheduledFuture<?> scheduledFuture = scheduledFutureMap.get(pendingPrepaidBillId);
         if (scheduledFuture != null && !scheduledFuture.isDone()) {
             scheduledFuture.cancel(false);
-            schedulePendingPrepaidBillTimeout(pendingPrepaidBillId, 10, shipper.getId(), true);
+            schedulePendingPrepaidBillTimeout(pendingPrepaidBillId, 5, shipper.getId(), true);
             log.info(
-                    "Task with PendingPrepaidBill ID {} is cancelled: {} and updated",
+                    "Task PendingPrepaidBill ID {} timeout is cancelled: {} and updated",
                     pendingPrepaidBillId,
                     scheduledFuture.isCancelled()
             );
@@ -169,6 +169,7 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
         }
 
         socketIOServer.getBroadcastOperations().sendEvent(pendingPrepaidBill.getShipper().getId().toString(), true);
+        socketIOServer.getBroadcastOperations().sendEvent("bill", 1);
         firebaseCloudMessagingService.sendNotificationToShipper(
                 savedBill.getShipper(),
                 savedBill.getCustomer().getFullname()
@@ -180,24 +181,24 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
     @Override
     @Transactional
     public ResponseMessage completeCustomerPrepaidBillByShipper(int pendingPrepaidBillId) {
-        CompletableFuture.runAsync(() -> {
-            PendingPrepaidBill pendingPrepaidBill = pendingPrepaidBillRepository
-                    .findById(pendingPrepaidBillId)
-                    .orElseThrow(() -> new NoSuchElementException("No such pending prepaid bill found"));
-            String customerEmail = pendingPrepaidBill.getCustomer().getEmail();
+        PendingPrepaidBill pendingPrepaidBill = pendingPrepaidBillRepository
+                .findById(pendingPrepaidBillId)
+                .orElseThrow(() -> new NoSuchElementException("No such pending prepaid bill found"));
+        String customerEmail = pendingPrepaidBill.getCustomer().getEmail();
 
-            if (customerEmail != null) {
+        if (customerEmail != null) {
+            CompletedBillNotification completedBillNotification = mapPendingPrepaidBillToCompletedBillNotification(pendingPrepaidBill);
+            CompletableFuture.runAsync(() -> {
                 try {
-                    CompletedBillNotification completedBillNotification = mapPendingPrepaidBillToCompletedBillNotification(pendingPrepaidBill);
                     emailService.sendCompletedBillNotificationEmail(customerEmail, completedBillNotification);
                 } catch (MessagingException exception) {
                     log.error("Sending email to customer error");
                 }
-            }
-        });
+            });
+        }
 
         pendingPrepaidBillRepository.deleteById(pendingPrepaidBillId);
-        return new ResponseMessage("Shipper đã hoàn thành đơn hàng");
+        return new ResponseMessage("Đã hoàn thành đơn hàng");
     }
 
     @Override
@@ -210,7 +211,7 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
 
     @Override
     public List<BillResponse> getAllReceivedCustomerPrepaidBillByShipper() {
-        return pendingPrepaidBillRepository.findByShipperAndIsCustomerPrepaidTrue(userDetailsService.getCurrentUser())
+        return pendingPrepaidBillRepository.findByShipperAndIsCustomerPrepaidTrueOrderByTimeDesc(userDetailsService.getCurrentUser())
                 .stream()
                 .map(billMapper::mapPendingPrepaidBillToBillResponse)
                 .collect(Collectors.toList());
@@ -241,7 +242,14 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
                     TimeUnit.MINUTES
             );
             scheduledFutureMap.put(pendingPrepaidBillId, scheduledFuture);
-            log.info("Task with PendingPrepaidBill ID {} is scheduled", pendingPrepaidBillId);
+
+            String logInfo = timeoutMinutes > 1
+                    ?
+                    "Task PendingPrepaidBill ID {} with {} minutes timeout is scheduled"
+                    :
+                    "Task PendingPrepaidBill ID {} with {} minute timeout is scheduled";
+
+            log.info(logInfo, pendingPrepaidBillId, timeoutMinutes);
         }
     }
 

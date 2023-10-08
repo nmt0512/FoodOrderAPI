@@ -20,33 +20,34 @@ public class FirebaseCloudMessagingService {
     private final FirebaseMessaging firebaseMessaging;
 
     public void sendNotificationToShipper(User shipper, String customerName) {
-        try {
-            List<FirebaseUserDevice> firebaseUserDeviceList = firebaseUserDeviceRepository.findByUser(shipper);
-            for (FirebaseUserDevice firebaseUserDevice : firebaseUserDeviceList) {
+        List<FirebaseUserDevice> firebaseUserDeviceList = firebaseUserDeviceRepository.findByUser(shipper);
+        for (FirebaseUserDevice firebaseUserDevice : firebaseUserDeviceList) {
+            try {
                 Message message = Message.builder()
                         .setToken(firebaseUserDevice.getFirebaseToken())
                         .putData("customer", customerName)
                         .build();
                 String response = firebaseMessaging.send(message);
                 log.info("Sent a message ID: {}", response);
+            } catch (FirebaseMessagingException exception) {
+                exception.printStackTrace();
+                log.error("Sending firebase message to a SHIPPER error: " + exception.getMessagingErrorCode().name());
             }
-        } catch (FirebaseMessagingException exception) {
-            exception.printStackTrace();
-            log.error("Sending firebase message error: " + exception.getMessagingErrorCode().name());
         }
+
     }
 
     public void sendNotificationToShipperTopic(String topicName, String customerName) {
         try {
             Message message = Message.builder()
                     .setTopic(topicName)
-                    .putData("customer", customerName)
+                    .putData("newOrder", customerName)
                     .build();
             String response = firebaseMessaging.send(message);
             log.info("Sent a message ID: {}", response);
         } catch (FirebaseMessagingException exception) {
             exception.printStackTrace();
-            log.error("Sending firebase message error: " + exception.getMessagingErrorCode().name());
+            log.error("Sending firebase message to a TOPIC error: " + exception.getMessagingErrorCode().name());
         }
     }
 }

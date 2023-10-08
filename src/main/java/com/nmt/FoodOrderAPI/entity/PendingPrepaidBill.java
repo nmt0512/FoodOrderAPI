@@ -1,6 +1,7 @@
 package com.nmt.FoodOrderAPI.entity;
 
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
 
 import javax.persistence.*;
 import javax.validation.constraints.Min;
@@ -26,6 +27,7 @@ public class PendingPrepaidBill {
     @Column(name = "Time", nullable = false)
     private Timestamp time;
 
+    @Nationalized
     @Column(name = "Address")
     private String address;
 

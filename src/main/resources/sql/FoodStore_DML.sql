@@ -185,5 +185,5 @@ END;
 
 SELECT * FROM FirebaseUserDevice
 
-DELETE FROM FirebaseUserDevice WHERE Id = 6
+DELETE FROM FirebaseUserDevice WHERE Id = 1
 

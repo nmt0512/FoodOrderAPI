@@ -14,5 +14,5 @@ public interface PendingPrepaidBillRepository extends JpaRepository<PendingPrepa
 
     Optional<PendingPrepaidBill> findByIdAndShipperNotNull(int pendingPrepaidBillId);
 
-    List<PendingPrepaidBill> findByShipperAndIsCustomerPrepaidTrue(User shipper);
+    List<PendingPrepaidBill> findByShipperAndIsCustomerPrepaidTrueOrderByTimeDesc(User shipper);
 }

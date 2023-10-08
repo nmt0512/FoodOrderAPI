@@ -8,7 +8,7 @@ import lombok.Setter;
 import javax.persistence.*;
 
 @Entity
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"UserId", "FirebaseToken"})})
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"UserId", "DeviceKey"})})
 @Getter
 @Setter
 @NoArgsConstructor

@@ -11,6 +11,6 @@ public class ExecutorServiceConfig {
 
     @Bean
     public ScheduledExecutorService scheduledExecutorService() {
-        return Executors.newScheduledThreadPool(50);
+        return Executors.newScheduledThreadPool(80);
     }
 }

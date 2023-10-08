@@ -1,6 +1,7 @@
 package com.nmt.FoodOrderAPI.entity;
 
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
 
 import javax.persistence.*;
 import javax.validation.constraints.Min;
@@ -29,6 +30,7 @@ public class Bill {
     @Column(name = "Status", nullable = false)
     private Integer status;
 
+    @Nationalized
     @Column(name = "Address")
     private String address;
 
