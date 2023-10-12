@@ -1,4 +1,4 @@
-package com.nmt.FoodOrderAPI.config;
+package com.nmt.FoodOrderAPI.config.cache;
 
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +13,7 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 import java.time.Duration;
 
 @Configuration
-public class RedisConfig {
+public class RedisCacheConfig {
 
     @Bean
     public RedisCacheConfiguration cacheConfiguration() {
@@ -29,12 +29,25 @@ public class RedisConfig {
 
     @Bean
     public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
-        return builder -> builder.withCacheConfiguration(
-                "bannerCache",
-                RedisCacheConfiguration
-                        .defaultCacheConfig()
-                        .entryTtl(Duration.ofMinutes(30))
-        );
+        return builder -> builder
+                .withCacheConfiguration(
+                        "bannerCache",
+                        RedisCacheConfiguration
+                                .defaultCacheConfig()
+                                .entryTtl(Duration.ofMinutes(30))
+                )
+                .withCacheConfiguration(
+                        "allStatisticYearCache",
+                        RedisCacheConfiguration
+                                .defaultCacheConfig()
+                                .entryTtl(Duration.ofMinutes(30))
+                )
+                .withCacheConfiguration(
+                        "allMonthStaffTrackingStatisticCache",
+                        RedisCacheConfiguration
+                                .defaultCacheConfig()
+                                .entryTtl(Duration.ofMinutes(30))
+                );
     }
 
     @Bean

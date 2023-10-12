@@ -168,12 +168,14 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
             );
         }
 
-        socketIOServer.getBroadcastOperations().sendEvent(pendingPrepaidBill.getShipper().getId().toString(), true);
-        socketIOServer.getBroadcastOperations().sendEvent("bill", 1);
-        firebaseCloudMessagingService.sendNotificationToShipper(
-                savedBill.getShipper(),
-                savedBill.getCustomer().getFullname()
-        );
+        CompletableFuture.runAsync(() -> {
+            socketIOServer.getBroadcastOperations().sendEvent(pendingPrepaidBill.getShipper().getId().toString(), true);
+            socketIOServer.getBroadcastOperations().sendEvent("bill", 1);
+            firebaseCloudMessagingService.sendNotificationToShipper(
+                    savedBill.getShipper(),
+                    savedBill.getCustomer().getFullname()
+            );
+        });
 
         return new ResponseMessage(BillStatusCode.PAID_FOR_SHIPPING.getMessage());
     }

@@ -49,6 +49,10 @@ SELECT * FROM Promotion WHERE ApplyingPrice < 300000
 
 SELECT * FROM DBUser
 
+SELECT * FROM DBUserPromotion
+
+INSERT INTO DBUserPromotion VALUES(23, 4)
+
 UPDATE DBUser SET Phone = '0362764805' WHERE Id = 23
 
 INSERT INTO DBUser(Username, Password, Fullname, Role, Email, Gender) VALUES('shipper5', 
@@ -86,12 +90,11 @@ INSERT INTO Image(Link, ProductId) VALUES('https://beptruong.edu.vn/wp-content/u
 
 SELECT YEAR(Time) AS Time, SUM(TotalPrice) AS TotalRevenue FROM Bill WHERE Status = 2 GROUP BY YEAR(Time)
 
-DELETE FROM BillItem
-DELETE FROM Bill
-
 SELECT * FROM BillItem
 
-SELECT * FROM Bill
+SELECT * FROM Bill WHERE MONTH(Time) = 12
+
+SELECT * FROM BillItem WHERE BillId = 96
 
 INSERT INTO Bill(Time, TotalPrice, UserId, Status) 
 VALUES('2023-06-12 06:46:35.2430000', 210000, 6, 2)
@@ -107,7 +110,8 @@ INSERT INTO Banner(Link) VALUES('https://res.cloudinary.com/dtcdff7yy/image/uplo
 SELECT * FROM Banner
 
 SELECT * FROM DBUser
-UPDATE DBUser SET Email = 'leductho1812@gmail.com' WHERE Id = 23
+
+UPDATE DBUser SET Email = 'hienhien2912@gmail.com' WHERE Id = 23
 
 SELECT * FROM Promotion
 
@@ -187,3 +191,6 @@ SELECT * FROM FirebaseUserDevice
 
 DELETE FROM FirebaseUserDevice WHERE Id = 1
 
+SELECT * FROM Banner
+
+INSERT INTO Banner(Link) VALUES('https://res.cloudinary.com/dtcdff7yy/image/upload/v1697033821/food/7_vk2bnp.jpg')

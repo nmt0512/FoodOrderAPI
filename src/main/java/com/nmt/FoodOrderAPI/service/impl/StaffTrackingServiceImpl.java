@@ -4,6 +4,7 @@ import com.nmt.FoodOrderAPI.dto.StaffTrackingStatisticResponse;
 import com.nmt.FoodOrderAPI.repo.StaffTrackingStatisticRepository;
 import com.nmt.FoodOrderAPI.service.StaffTrackingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class StaffTrackingServiceImpl implements StaffTrackingService {
     }
 
     @Override
+    @Cacheable(value = "allMonthStaffTrackingStatisticCache")
     public List<String> getAllMonthStaffTrackingStatistic() {
         return staffTrackingStatisticRepository.getAllMonthStaffTrackingStatistic();
     }

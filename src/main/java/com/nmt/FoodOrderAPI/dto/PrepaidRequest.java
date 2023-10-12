@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.lang.Nullable;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class PrepaidRequest implements Serializable {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer promotionId;
 
+    @NotBlank(message = "Address must not be blank")
     private String address;
 
     private Integer totalPrice;

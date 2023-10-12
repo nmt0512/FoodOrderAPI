@@ -5,6 +5,7 @@ import com.nmt.FoodOrderAPI.dto.StatisticResponse;
 import com.nmt.FoodOrderAPI.repo.StatisticRepository;
 import com.nmt.FoodOrderAPI.service.StatisticService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -33,6 +34,7 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @Override
+    @Cacheable(value = "allStatisticYearCache")
     public List<Integer> getAllStatisticYear() {
         return statisticRepository.getAllStatisticYear();
     }

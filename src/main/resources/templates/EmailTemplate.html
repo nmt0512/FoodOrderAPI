@@ -9,23 +9,25 @@
     <tr>
         <td align="center" bgcolor="#f7f7f7" style="padding: 40px 0;">
             <img src="https://res.cloudinary.com/dtcdff7yy/image/upload/v1696618685/logo/green_double_circle_check_mark_ygyu8z.jpg"
-                 alt="Logo Image" width="220" height="220">
+                 alt="Logo Image" width="220" height="220" draggable="false">
         </td>
     </tr>
     <tr>
         <td align="center" bgcolor="#f7f7f7" style="padding: 40px 30px;">
-            <h2 style="margin: 0; font-size: 24px;">Đơn hàng <span th:text="${billId}"></span> đã hoàn thành</h2>
+            <h2 style="margin: 0; font-size: 24px;">Đơn hàng <span style="font-weight: bold;" th:text="${billId}"></span> đã hoàn thành</h2>
             <p style="margin-top: 20px; font-size: 16px;">Chúng tôi xin thông báo rằng đơn hàng của bạn đã được xử lý
                 thành công.</p>
-            <p style="margin-top: 20px; font-size: 16px;">Thời gian hoàn thành đơn hàng: <span th:text="${completedTime}"></span></p>
+            <p style="margin-top: 20px; font-size: 16px;">Thời gian hoàn thành đơn hàng: <span style="font-weight: bold;" th:text="${completedTime}"></span></p>
             <table id="product-table" width="100%" cellspacing="0" cellpadding="10"
                    style="margin-top: 30px; font-size: 16px; border: 1px solid #ccc;">
                 <tr bgcolor="#f7f7f7">
-                    <th align="left">Sản phẩm</th>
+                    <th align="left">Tên sản phẩm</th>
+                    <th align="left">Hình ảnh</th>
                     <th align="left">Số lượng</th>
                     <th align="left">Giá</th>
                 </tr>
                 <tr th:each="billItem : ${billItems}">
+                    <td th:text="${billItem.name}"></td>
                     <td>
                         <img th:src="${billItem.image}" alt="Product Image" width="100" height="100">
                     </td>
@@ -34,7 +36,7 @@
                 </tr>
             </table>
             <p style="margin-top: 20px; font-size: 16px;">
-                Tổng số tiền bạn đã thanh toán cho đơn hàng là: <span th:text="${totalPrice}"></span> VNĐ
+                Tổng số tiền bạn đã thanh toán cho đơn hàng là: <span style="font-weight: bold;" th:text="${totalPrice}"></span> VNĐ
             </p>
         </td>
     </tr>

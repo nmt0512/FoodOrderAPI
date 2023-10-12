@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -19,7 +20,7 @@ public class PendingPrepaidBillController {
     private final PendingPrepaidBillService pendingPrepaidBillService;
 
     @PostMapping
-    public ResponseEntity<ResponseData<BillResponse>> orderPendingPrepaidBill(@RequestBody PrepaidRequest prepaidRequest) {
+    public ResponseEntity<ResponseData<BillResponse>> orderPendingPrepaidBill(@RequestBody @Valid PrepaidRequest prepaidRequest) {
         return ResponseUtils.success(pendingPrepaidBillService.createPendingPrepaidBill(prepaidRequest));
     }
 

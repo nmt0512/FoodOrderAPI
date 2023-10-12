@@ -1,16 +1,15 @@
 package com.nmt.FoodOrderAPI;
 
-import com.nmt.FoodOrderAPI.config.ServiceLifeCycleConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Import;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
+@EnableCaching
 @RequiredArgsConstructor
-@Import(ServiceLifeCycleConfig.class)
 public class FoodOrderApiApplication {
 
     public static void main(String[] args) {

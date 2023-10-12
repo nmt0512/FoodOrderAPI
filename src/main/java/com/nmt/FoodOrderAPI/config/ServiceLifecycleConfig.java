@@ -2,13 +2,15 @@ package com.nmt.FoodOrderAPI.config;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.concurrent.ScheduledExecutorService;
 
+@Configuration
 @RequiredArgsConstructor
-public class ServiceLifeCycleConfig {
+public class ServiceLifecycleConfig {
     private final SocketIOServer socketIOServer;
     private final ScheduledExecutorService scheduledExecutorService;
 
