@@ -1,6 +1,7 @@
 package com.nmt.FoodOrderAPI.config;
 
 import com.corundumstudio.socketio.SocketIOServer;
+import com.nmt.FoodOrderAPI.repo.FirebaseUserDeviceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,6 +14,7 @@ import java.util.concurrent.ScheduledExecutorService;
 public class ServiceLifecycleConfig {
     private final SocketIOServer socketIOServer;
     private final ScheduledExecutorService scheduledExecutorService;
+    private final FirebaseUserDeviceRepository firebaseUserDeviceRepository;
 
     @PostConstruct
     public void start() {
@@ -23,5 +25,6 @@ public class ServiceLifecycleConfig {
     public void stop() {
         scheduledExecutorService.shutdown();
         socketIOServer.stop();
+        firebaseUserDeviceRepository.deleteAll();
     }
 }

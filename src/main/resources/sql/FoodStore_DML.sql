@@ -165,9 +165,9 @@ SELECT * FROM PendingPrepaidBillItem
 
 SELECT * FROM StaffTracking
 
-DELETE FROM PendingPrepaidBill WHERE Id != 40
+DELETE FROM PendingPrepaidBill
 
-DELETE FROM PendingPrepaidBillItem WHERE PendingPrepaidBillId != 40
+DELETE FROM PendingPrepaidBillItem WHERE PendingPrepaidBillId = 172
 
 CREATE TRIGGER Trigger_UpdateOnlyOneTime_Shipper 
 ON PendingPrepaidBill 
@@ -188,8 +188,6 @@ END;
 
 
 SELECT * FROM FirebaseUserDevice
-
-DELETE FROM FirebaseUserDevice WHERE Id = 1
 
 SELECT * FROM Banner
 

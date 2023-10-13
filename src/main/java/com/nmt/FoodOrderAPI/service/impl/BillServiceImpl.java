@@ -15,6 +15,7 @@ import com.nmt.FoodOrderAPI.repo.StaffTrackingRepository;
 import com.nmt.FoodOrderAPI.service.BillService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +43,9 @@ public class BillServiceImpl implements BillService {
     private final PromotionMappper promotionMappper;
     private final SocketIOServer socketIOServer;
     private final JwtUtils jwtUtils;
+
+    @Value("${bill.paging.size}")
+    private int pagingSize;
 
 
     @Override
@@ -159,14 +163,15 @@ public class BillServiceImpl implements BillService {
 
     @Override
     public List<BillResponse> getBillByFilter(Integer page, Integer status, String orderBy) {
+        int pageIndex = page - 1;
         Page<Bill> billList;
         Pageable ascTimePageable = PageRequest.of(
-                page - 1,
-                10,
+                pageIndex,
+                pagingSize,
                 Sort.by(Sort.Direction.ASC, "time"));
         Pageable descTimePageable = PageRequest.of(
-                page - 1,
-                10,
+                pageIndex,
+                pagingSize,
                 Sort.by(Sort.Direction.DESC, "time"));
 
         if (status == null) {
@@ -177,7 +182,7 @@ public class BillServiceImpl implements BillService {
                     billRepository.findAll(descTimePageable);
         } else if (orderBy == null) {
             billList = billRepository.findByStatus(status, PageRequest.of(
-                    page - 1,
+                    pageIndex,
                     10)
             );
         } else {

@@ -7,6 +7,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Enumeration;
 
 @Component
 public class LoggingInterceptor implements HandlerInterceptor {
@@ -14,6 +15,26 @@ public class LoggingInterceptor implements HandlerInterceptor {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
-        LOGGER.info("REQUEST: {} >>> RESPONSE STATUS: {}", request.getRequestURI(), response.getStatus());
+        StringBuilder paramsStringBuilder = new StringBuilder();
+        Enumeration<String> paramsName = request.getParameterNames();
+        while (paramsName.hasMoreElements()) {
+            String paramName = paramsName.nextElement();
+            paramsStringBuilder.append(paramName);
+            paramsStringBuilder.append("=");
+            paramsStringBuilder.append(request.getParameterValues(paramName)[0]);
+            paramsStringBuilder.append("&");
+        }
+        int lastIndexOfAmpersand = paramsStringBuilder.lastIndexOf("&");
+        if (lastIndexOfAmpersand >= 0)
+            paramsStringBuilder.deleteCharAt(lastIndexOfAmpersand);
+        else
+            paramsStringBuilder.append("null");
+
+        LOGGER.info(
+                "REQUEST: {} | PARAMS: {} >>> RESPONSE STATUS: {}",
+                request.getRequestURI(),
+                paramsStringBuilder,
+                response.getStatus()
+        );
     }
 }

@@ -28,7 +28,7 @@ public class FirebaseCloudMessagingService {
                         .putData("customer", customerName)
                         .build();
                 String response = firebaseMessaging.send(message);
-                log.info("Sent a message ID: {}", response);
+                log.info("Sent a message ID: {} to device key: {}", response, firebaseUserDevice.getDeviceKey());
             } catch (FirebaseMessagingException exception) {
                 exception.printStackTrace();
                 log.error("Sending firebase message to a SHIPPER error: " + exception.getMessagingErrorCode().name());

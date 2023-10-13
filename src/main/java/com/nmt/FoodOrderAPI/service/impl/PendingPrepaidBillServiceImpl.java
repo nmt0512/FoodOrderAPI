@@ -94,6 +94,7 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
         CompletableFuture.runAsync(() -> {
             socketIOServer.getBroadcastOperations().sendEvent("pendingPrepaidBill", 1);
             firebaseCloudMessagingService.sendNotificationToShipperTopic("shipperTopic", customer.getFullname());
+            log.info("Sent new bill notification to shipper");
         });
 
         return billResponse;
@@ -129,6 +130,7 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
                 true,
                 shipper.getId()
         );
+        log.info("Sent received bill notification to customer");
 
         return new ResponseMessage("Đã nhận đơn hàng và đợi khách hàng thanh toán");
     }
@@ -175,6 +177,7 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
                     savedBill.getShipper(),
                     savedBill.getCustomer().getFullname()
             );
+            log.info("Sent payment notification to shipper and new bill to store");
         });
 
         return new ResponseMessage(BillStatusCode.PAID_FOR_SHIPPING.getMessage());
