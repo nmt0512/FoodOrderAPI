@@ -16,7 +16,7 @@ public class StaffTrackingStatisticRepository {
     public List<StaffTrackingStatisticResponse> getStaffTrackingStatisticByMonthOfYear(String monthOfYear) {
         String query = "SELECT st.StaffId AS Id, u.Fullname, SUM(st.Revenue) AS TotalRevenue, " +
                 "CAST(SUM(st.WorkingDuration) AS decimal(10,2)) AS TotalDuration " +
-                "FROM DBUser u JOIN StaffTracking st ON u.Id = st.StaffId " +
+                "FROM StaffTracking st INNER JOIN DBUser u ON st.StaffId = u.Id " +
                 "WHERE FORMAT(st.LoginTime, 'MM-yyyy') = '" + monthOfYear +
                 "' GROUP BY st.StaffId, u.Fullname";
         return jdbcTemplate.query(query, new BeanPropertyRowMapper<>(StaffTrackingStatisticResponse.class));
