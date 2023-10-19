@@ -5,7 +5,6 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.nmt.FoodOrderAPI.entity.FirebaseUserDevice;
 import com.nmt.FoodOrderAPI.entity.User;
-import com.nmt.FoodOrderAPI.repo.FirebaseUserDeviceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,11 +15,10 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class FirebaseCloudMessagingService {
-    private final FirebaseUserDeviceRepository firebaseUserDeviceRepository;
     private final FirebaseMessaging firebaseMessaging;
 
     public void sendNotificationToShipper(User shipper, String customerName) {
-        List<FirebaseUserDevice> firebaseUserDeviceList = firebaseUserDeviceRepository.findByUser(shipper);
+        List<FirebaseUserDevice> firebaseUserDeviceList = shipper.getFirebaseUserDeviceList();
         for (FirebaseUserDevice firebaseUserDevice : firebaseUserDeviceList) {
             try {
                 Message message = Message.builder()

@@ -101,10 +101,6 @@ VALUES('2023-06-12 06:46:35.2430000', 210000, 6, 2)
 
 SELECT DISTINCT YEAR(Time) FROM Bill ORDER BY YEAR(Time) ASC
 
-SELECT FORMAT(Time, 'dd/MM/yyyy') AS Time, SUM(TotalPrice) AS Revenue
-FROM Bill WHERE Status = 2 AND FORMAT(Time, 'dd/MM/yyyy') = '01/06/2023'
-GROUP BY FORMAT(Time, 'dd/MM/yyyy')
-
 INSERT INTO Banner(Link) VALUES('https://res.cloudinary.com/dtcdff7yy/image/upload/v1685939047/food/7_bmqlgi.jpg')
 
 SELECT * FROM Banner
@@ -192,3 +188,8 @@ SELECT * FROM FirebaseUserDevice
 SELECT * FROM Banner
 
 INSERT INTO Banner(Link) VALUES('https://res.cloudinary.com/dtcdff7yy/image/upload/v1697033821/food/7_vk2bnp.jpg')
+
+
+SELECT FORMAT(Time, 'dd/MM/yyyy') AS Time, SUM(TotalPrice) AS Revenue
+FROM Bill WHERE Status = 2 AND FORMAT(Time, 'dd/MM/yyyy') = '01/06/2023'
+GROUP BY FORMAT(Time, 'dd/MM/yyyy')

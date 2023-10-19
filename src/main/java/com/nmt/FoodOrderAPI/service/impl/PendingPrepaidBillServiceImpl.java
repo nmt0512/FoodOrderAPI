@@ -91,11 +91,15 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
 
         schedulePendingPrepaidBillTimeout(pendingPrepaidBill.getId(), 5, customer.getId(), false);
 
-        CompletableFuture.runAsync(() -> {
-            socketIOServer.getBroadcastOperations().sendEvent("pendingPrepaidBill", 1);
-            firebaseCloudMessagingService.sendNotificationToShipperTopic("shipperTopic", customer.getFullname());
-            log.info("Sent new bill notification to shipper");
-        });
+        CompletableFuture
+                .runAsync(() -> {
+                    socketIOServer.getBroadcastOperations().sendEvent("pendingPrepaidBill", 1);
+                    firebaseCloudMessagingService.sendNotificationToShipperTopic("shipperTopic", customer.getFullname());
+                    log.info("Sent new bill notification to shipper");
+                })
+                .whenComplete((unused, throwable) -> {
+                    log.error("Sending firebase message to a SHIPPER error: " + throwable.getLocalizedMessage());
+                });
 
         return billResponse;
     }
@@ -170,15 +174,19 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
             );
         }
 
-        CompletableFuture.runAsync(() -> {
-            socketIOServer.getBroadcastOperations().sendEvent(pendingPrepaidBill.getShipper().getId().toString(), true);
-            socketIOServer.getBroadcastOperations().sendEvent("bill", 1);
-            firebaseCloudMessagingService.sendNotificationToShipper(
-                    savedBill.getShipper(),
-                    savedBill.getCustomer().getFullname()
-            );
-            log.info("Sent payment notification to shipper and new bill to store");
-        });
+        CompletableFuture
+                .runAsync(() -> {
+                    socketIOServer.getBroadcastOperations().sendEvent(pendingPrepaidBill.getShipper().getId().toString(), true);
+                    socketIOServer.getBroadcastOperations().sendEvent("bill", 1);
+                    firebaseCloudMessagingService.sendNotificationToShipper(
+                            savedBill.getShipper(),
+                            savedBill.getCustomer().getFullname()
+                    );
+                    log.info("Sent payment notification to shipper and new bill to store");
+                })
+                .whenComplete((unused, throwable) -> {
+                    log.error("Sending firebase message to a TOPIC error: " + throwable.getLocalizedMessage());
+                });
 
         return new ResponseMessage(BillStatusCode.PAID_FOR_SHIPPING.getMessage());
     }
