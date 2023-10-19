@@ -28,7 +28,6 @@ public class FirebaseCloudMessagingService {
                 String response = firebaseMessaging.send(message);
                 log.info("Sent a message ID: {} to device key: {}", response, firebaseUserDevice.getDeviceKey());
             } catch (FirebaseMessagingException exception) {
-                exception.printStackTrace();
                 log.error("Sending firebase message to a SHIPPER error: " + exception.getMessagingErrorCode().name());
             }
         }
@@ -44,7 +43,6 @@ public class FirebaseCloudMessagingService {
             String response = firebaseMessaging.send(message);
             log.info("Sent a message ID: {}", response);
         } catch (FirebaseMessagingException exception) {
-            exception.printStackTrace();
             log.error("Sending firebase message to a TOPIC error: " + exception.getMessagingErrorCode().name());
         }
     }
