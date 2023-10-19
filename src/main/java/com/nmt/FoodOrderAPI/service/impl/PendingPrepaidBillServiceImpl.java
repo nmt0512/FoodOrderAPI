@@ -97,8 +97,9 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
                     firebaseCloudMessagingService.sendNotificationToShipperTopic("shipperTopic", customer.getFullname());
                     log.info("Sent new bill notification to shipper");
                 })
-                .whenComplete((unused, throwable) -> {
-                    log.error("Sending firebase message to a SHIPPER error: " + throwable.getLocalizedMessage());
+                .exceptionally(throwable -> {
+                    log.error("Sending firebase message to a SHIPPER error: " + throwable.getMessage());
+                    return null;
                 });
 
         return billResponse;
@@ -184,8 +185,9 @@ public class PendingPrepaidBillServiceImpl implements PendingPrepaidBillService 
                     );
                     log.info("Sent payment notification to shipper and new bill to store");
                 })
-                .whenComplete((unused, throwable) -> {
-                    log.error("Sending firebase message to a TOPIC error: " + throwable.getLocalizedMessage());
+                .exceptionally(throwable -> {
+                    log.error("Sending firebase message to a TOPIC error: " + throwable.getMessage());
+                    return null;
                 });
 
         return new ResponseMessage(BillStatusCode.PAID_FOR_SHIPPING.getMessage());
