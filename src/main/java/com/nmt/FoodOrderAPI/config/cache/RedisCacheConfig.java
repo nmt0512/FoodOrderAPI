@@ -1,6 +1,5 @@
 package com.nmt.FoodOrderAPI.config.cache;
 
-import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -17,8 +16,9 @@ public class RedisCacheConfig {
 
     @Bean
     public RedisCacheConfiguration cacheConfiguration() {
-        return RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(60))
+        return RedisCacheConfiguration
+                .defaultCacheConfig()
+                .entryTtl(Duration.ofMinutes(30))
                 .disableCachingNullValues()
                 .serializeValuesWith(
                         RedisSerializationContext
@@ -27,28 +27,28 @@ public class RedisCacheConfig {
                 );
     }
 
-    @Bean
-    public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
-        return builder -> builder
-                .withCacheConfiguration(
-                        "bannerCache",
-                        RedisCacheConfiguration
-                                .defaultCacheConfig()
-                                .entryTtl(Duration.ofMinutes(30))
-                )
-                .withCacheConfiguration(
-                        "allStatisticYearCache",
-                        RedisCacheConfiguration
-                                .defaultCacheConfig()
-                                .entryTtl(Duration.ofMinutes(30))
-                )
-                .withCacheConfiguration(
-                        "allMonthStaffTrackingStatisticCache",
-                        RedisCacheConfiguration
-                                .defaultCacheConfig()
-                                .entryTtl(Duration.ofMinutes(30))
-                );
-    }
+//    @Bean
+//    public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
+//        return builder -> builder
+//                .withCacheConfiguration(
+//                        "bannerCache",
+//                        RedisCacheConfiguration
+//                                .defaultCacheConfig()
+//                                .entryTtl(Duration.ofMinutes(30))
+//                )
+//                .withCacheConfiguration(
+//                        "allStatisticYearCache",
+//                        RedisCacheConfiguration
+//                                .defaultCacheConfig()
+//                                .entryTtl(Duration.ofMinutes(30))
+//                )
+//                .withCacheConfiguration(
+//                        "allMonthStaffTrackingStatisticCache",
+//                        RedisCacheConfiguration
+//                                .defaultCacheConfig()
+//                                .entryTtl(Duration.ofMinutes(30))
+//                );
+//    }
 
     @Bean
     public JedisConnectionFactory jedisConnectionFactory() {
