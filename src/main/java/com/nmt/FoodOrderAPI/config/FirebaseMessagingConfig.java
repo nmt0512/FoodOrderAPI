@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 @Configuration
 public class FirebaseMessagingConfig {
@@ -18,12 +18,15 @@ public class FirebaseMessagingConfig {
 
     @Bean
     public FirebaseMessaging firebaseMessaging() throws IOException {
-        FileInputStream serviceAccount = new FileInputStream(firebaseJsonPath);
-        GoogleCredentials googleCredentials = GoogleCredentials.fromStream(serviceAccount);
-        FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(googleCredentials)
-                .build();
-        FirebaseApp firebaseApp = FirebaseApp.initializeApp(options, "food-order");
-        return FirebaseMessaging.getInstance(firebaseApp);
+        InputStream serviceAccount = FirebaseMessagingConfig.class.getResourceAsStream(firebaseJsonPath);
+        if (serviceAccount != null) {
+            GoogleCredentials googleCredentials = GoogleCredentials.fromStream(serviceAccount);
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(googleCredentials)
+                    .build();
+            FirebaseApp firebaseApp = FirebaseApp.initializeApp(options, "food-order");
+            return FirebaseMessaging.getInstance(firebaseApp);
+        }
+        return null;
     }
 }
