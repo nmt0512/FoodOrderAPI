@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SocketIOConfig {
+
     @Value("${socket.io.hostname}")
     private String hostname;
     @Value("${socket.io.port}")

@@ -4,7 +4,7 @@ import com.nmt.FoodOrderAPI.entity.User;
 import com.nmt.FoodOrderAPI.enums.UserRolesCode;
 import com.nmt.FoodOrderAPI.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,7 +44,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+        if (authentication instanceof UsernamePasswordAuthenticationToken) {
             return userRepo.findByUsername(authentication.getName());
         }
         return null;
